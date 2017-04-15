@@ -1,0 +1,14 @@
+<RCC>
+    <qresource>
+        <file>Icon/close.png</file>
+        <file>Icon/new.png</file>
+        <file>Icon/open.png</file>
+        <file>Icon/quit.png</file>
+        <file>Icon/recent.png</file>
+        <file>Icon/save.png</file>
+        <file>Icon/translator.png</file>
+        <file>Icon/Block.png</file>
+        <file>Icon/ToCheck.png</file>
+        <file>Icon/Validate.png</file>
+    </qresource>
+</RCC>
