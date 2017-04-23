@@ -533,8 +533,8 @@ void MainWindow::on_valueTableWidget_itemSelectionChanged()
 	QString lang = this->ui->valueTableWidget->verticalHeaderItem(item->row())->text();
 	qDebug() << lang;
 
-	QString currentLangGoogleTraduc = Singleton<LangHelper>::getInstance().GetGoogleTraducName(lang);
-	QString defaultLangGoogleTraduc = Singleton<LangHelper>::getInstance().GetGoogleTraducName(this->defaultLang);
+	QString currentLangGoogleTraduc = Singleton<LangHelper>::getInstance().GetLangInfo(lang).googleTraducName;
+	QString defaultLangGoogleTraduc = Singleton<LangHelper>::getInstance().GetLangInfo(this->defaultLang).googleTraducName;
 
 	this->webengine->load(QUrl("https://translate.google.fr/?ie=UTF-8&hl=fr&client=tw-ob#" + defaultLangGoogleTraduc + "/" + currentLangGoogleTraduc + "/" + defaultKey.replace(' ', "%20")));
 }

@@ -18,11 +18,8 @@ public:
 	LangHelper(void);
 	bool Load(const QString& path);
 
-	QStringList GetKeyList(void) const;
-
-	QString GetDisplayName(const QString& key) const;
-	QString GetSavedName(const QString& key) const;
-	QString GetGoogleTraducName(const QString& key) const;
+	QList<QString> GetKeyList(void) const;
+	LangInfo GetLangInfo(const QString& key) const;
 
 private:
 	QMap<QString, LangInfo> langMap;

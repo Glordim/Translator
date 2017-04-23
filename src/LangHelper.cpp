@@ -2,14 +2,7 @@
 
 #include <QFile>
 #include <QtXml>
-#include <QFileInfo>
-
-#include <QFileDialog>
 #include <QMessageBox>
-#include <QErrorMessage>
-
-#include "Singleton.h"
-#include "MainWindow.h"
 
 LangHelper::LangHelper(void)
 {
@@ -18,25 +11,16 @@ LangHelper::LangHelper(void)
 
 bool LangHelper::Load(const QString& path)
 {
-	LangHelper::langMap.clear();
-
-	QFileInfo root(".");
-
-	QDebug(QtInfoMsg) << root.absolutePath();
-
-	QFileInfo fileInfo(path);
-
 	QFile file(path);
+
 	if (file.open(QIODevice::ReadOnly) == false)
 	{
-		file.close();
-
-		QMessageBox::critical(NULL,"Erreur","Impossible d'ouvrir en lecture le descriptif des langues");
+		QMessageBox::critical(NULL,"Error", "./LangInfo.xml: " + file.errorString());
 
 		return false;
 	}
 
-	QDomDocument* dom = new QDomDocument(fileInfo.fileName());
+	QDomDocument* dom = new QDomDocument();
 
 	if (dom->setContent(&file) == false)
 	{
@@ -46,54 +30,39 @@ bool LangHelper::Load(const QString& path)
 
 	file.close();
 
+	this->langMap.clear();
+
 	QDomElement docElem = dom->documentElement();
 
-	QDomNode n = docElem.firstChild();
+	QDomNode node = docElem.firstChild();
 
-	while (n.isNull() == false)
+	while (node.isNull() == false)
 	{
-		QDomElement e = n.toElement();
+		QDomElement element = node.toElement();
 
-		if (e.tagName() == "LangInfo")
+		if (element.tagName() == "LangInfo")
 		{
 			LangInfo lang;
 
-			lang.displayName = e.attribute("Display");
-			lang.savedName = e.attribute("Saved");
-			lang.googleTraducName = e.attribute("GoogleTraduc");
+			lang.displayName = element.attribute("Display");
+			lang.savedName = element.attribute("Saved");
+			lang.googleTraducName = element.attribute("GoogleTraduc");
 
 			this->langMap[lang.displayName] = lang;
 		}
 
-		n = n.nextSibling();
+		node = node.nextSibling();
 	}
 
 	return true;
 }
 
-QStringList LangHelper::GetKeyList() const
+QList<QString> LangHelper::GetKeyList() const
 {
-	QStringList list(this->langMap.keys());
-	return list;
+	return this->langMap.keys();
 }
 
-QString LangHelper::GetDisplayName(const QString& key) const
+LangHelper::LangInfo LangHelper::GetLangInfo(const QString& key) const
 {
-	if (this->langMap.contains(key) == true)
-		return this->langMap[key].displayName;
-	return "Key Not Found";
-}
-
-QString LangHelper::GetSavedName(const QString& key) const
-{
-	if (this->langMap.contains(key) == true)
-		return this->langMap[key].savedName;
-	return "Key Not Found";
-}
-
-QString LangHelper::GetGoogleTraducName(const QString& key) const
-{
-	if (this->langMap.contains(key) == true)
-		return this->langMap[key].googleTraducName;
-	return "Key Not Found";
+	return this->langMap[key];
 }

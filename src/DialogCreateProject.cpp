@@ -23,7 +23,7 @@ DialogCreateProject::DialogCreateProject(QWidget *parent, ProjectHelper& project
 
 	LangHelper& langHelper = Singleton<LangHelper>::getInstance();
 
-	QStringList list = langHelper.GetKeyList();
+	QList<QString> list = langHelper.GetKeyList();
 	/*
 	list.push_back("Afrikaans");
 	list.push_back("Arabic");
