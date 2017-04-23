@@ -144,10 +144,11 @@ void MainWindow::LoadProject(const QString& path)
 	{
 		this->ui->valueTableWidget->insertRow(this->ui->valueTableWidget->rowCount());
 
-		QIcon *icon = new QIcon(":Icon/checked.png");
+		QIcon icon;
+		icon.addFile(":Ok");
 
 		QPushButton* buttonStatus = new QPushButton();
-		buttonStatus->setIcon(*icon);
+		buttonStatus->setIcon(icon);
 		buttonStatus->setIconSize(QSize(32,32));
 		buttonStatus->setFlat(true);
 		//buttonStatus->setStyleSheet("border: none;");
@@ -240,9 +241,10 @@ void MainWindow::RefreshButtonStatus(int index)
 	if (buttonStatus == NULL)
 		return;
 
-	QIcon *icon = new QIcon(":Icon/" + KeyValue::StatusToString(status) + ".png");
+	QIcon icon;
+	icon.addFile(":" + KeyValue::StatusToString(status));
 
-	buttonStatus->setIcon(*icon);
+	buttonStatus->setIcon(icon);
 }
 
 void MainWindow::RefreshListKeyStatus(QListWidgetItem* item)
@@ -277,9 +279,10 @@ void MainWindow::RefreshListKeyStatus(QListWidgetItem* item)
 	else
 		iconName = "";
 
-	QIcon *icon = new QIcon(":/Icon/" + iconName + ".png");
+	QIcon icon;
+	icon.addFile(":" + iconName);
 
-	item->setIcon(*icon);
+	item->setIcon(icon);
 }
 
 //  === Search Key ===
@@ -446,8 +449,10 @@ void MainWindow::NewKey()
 		this->project.SetValue(langList[i], newKey, "");
 	}
 
-	QIcon* icon = new QIcon(":/Icon/" + KeyValue::StatusToString(KeyStatus::Block) + ".png");
-	QListWidgetItem* item = new QListWidgetItem(*icon, newKey, this->ui->keyListWidget);
+	QIcon icon;
+	icon.addFile(":" + KeyValue::StatusToString(KeyStatus::Block));
+
+	QListWidgetItem* item = new QListWidgetItem(icon, newKey, this->ui->keyListWidget);
 	item->setData(Qt::UserRole, newKey);
 	item->setFlags(item->flags() | Qt::ItemIsEditable);
 	item->setSelected(true);

@@ -11,23 +11,44 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Translator
 TEMPLATE = app
 
-SOURCES += main.cpp\
-    MainWindow.cpp \
-    DialogCreateProject.cpp \
-    DialogProxy.cpp \
-    ProjectHelper.cpp \
-    LangHelper.cpp
+defineTest(copyToDestdir) {
+    files = $$1
 
-HEADERS  += MainWindow.h \
-    DialogCreateProject.h \
-    DialogProxy.h \
-    ProjectHelper.h \
-    LangHelper.h \
-    Singleton.h
+    for(FILE, files) {
+	DDIR = $$DESTDIR
 
-FORMS    += MainWindow.ui \
-    DialogCreateProject.ui \
-    DialogProxy.ui
+	# Replace slashes in paths with backslashes for Windows
+	win32:FILE ~= s,/,\\,g
+	win32:DDIR ~= s,/,\\,g
 
-RESOURCES += \
-    resources.qrc
+	QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$FILE) $$quote($$DDIR) $$escape_expand(\\n\\t)
+    }
+
+    export(QMAKE_POST_LINK)
+}
+
+copyToDestdir($$PWD/LangInfo.xml)
+
+SOURCES += src/main.cpp\
+    src/MainWindow.cpp \
+    src/DialogCreateProject.cpp \
+    src/DialogProxy.cpp \
+    src/ProjectHelper.cpp \
+    src/LangHelper.cpp
+
+INCLUDEPATH += $$PWD/src
+
+HEADERS  += src/MainWindow.h \
+    src/DialogCreateProject.h \
+    src/DialogProxy.h \
+    src/ProjectHelper.h \
+    src/LangHelper.h \
+    src/Singleton.h
+
+UI_DIR = $$PWD/src
+
+FORMS    += src/MainWindow.ui \
+    src/DialogCreateProject.ui \
+    src/DialogProxy.ui
+
+RESOURCES += resources.qrc

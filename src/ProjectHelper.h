@@ -24,13 +24,13 @@ struct KeyValue
 		{
 		default:
 		case Block:
-			return "Block";
+			return "Error";
 			break;
 		case Validate:
-			return "Validate";
+			return "Ok";
 			break;
 		case ToCheck:
-			return "ToCheck";
+			return "Warning";
 			break;
 		}
 	}

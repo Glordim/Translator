@@ -241,8 +241,8 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNewProject">
    <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Icon/new.png</normaloff>:/Icon/new.png</iconset>
+    <iconset resource="../resources.qrc">
+     <normaloff>:/New</normaloff>:/New</iconset>
    </property>
    <property name="text">
     <string>New Project</string>
@@ -250,8 +250,8 @@
   </action>
   <action name="actionOpenProject">
    <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Icon/open.png</normaloff>:/Icon/open.png</iconset>
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Open</normaloff>:/Open</iconset>
    </property>
    <property name="text">
     <string>Open Project</string>
@@ -259,8 +259,8 @@
   </action>
   <action name="actionCloseProject">
    <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Icon/close.png</normaloff>:/Icon/close.png</iconset>
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Close</normaloff>:/Close</iconset>
    </property>
    <property name="text">
     <string>Close Project</string>
@@ -268,8 +268,8 @@
   </action>
   <action name="actionSaveProject">
    <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Icon/save.png</normaloff>:/Icon/save.png</iconset>
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Save</normaloff>:/Save</iconset>
    </property>
    <property name="text">
     <string>Save File</string>
@@ -277,8 +277,8 @@
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Icon/quit.png</normaloff>:/Icon/quit.png</iconset>
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Quit</normaloff>:/Quit</iconset>
    </property>
    <property name="text">
     <string>Quit</string>
@@ -286,8 +286,8 @@
   </action>
   <action name="actionRecentProject">
    <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Icon/recent.png</normaloff>:/Icon/recent.png</iconset>
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Recent</normaloff>:/Recent</iconset>
    </property>
    <property name="text">
     <string>Recent Project</string>
@@ -295,22 +295,27 @@
   </action>
   <action name="actionProjectSettings">
    <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Icon/translator.png</normaloff>:/Icon/translator.png</iconset>
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Settings</normaloff>:/Settings</iconset>
    </property>
    <property name="text">
     <string>Projetc Settings</string>
    </property>
-   <property name="toolTip">
-    <string>Projetc Settings</string>
-   </property>
   </action>
   <action name="actionHowToUseIt">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/icons/Validate.png</normaloff>:/icons/Validate.png</iconset>
+   </property>
    <property name="text">
     <string>How To Use it</string>
    </property>
   </action>
   <action name="actionAbout">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/icons/Validate.png</normaloff>:/icons/Validate.png</iconset>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
@@ -318,7 +323,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="../resources.qrc"/>
  </resources>
  <connections/>
 </ui>

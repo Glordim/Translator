@@ -1,14 +1,14 @@
 <RCC>
-    <qresource>
-        <file>Icon/close.png</file>
-        <file>Icon/new.png</file>
-        <file>Icon/open.png</file>
-        <file>Icon/quit.png</file>
-        <file>Icon/recent.png</file>
-        <file>Icon/save.png</file>
-        <file>Icon/translator.png</file>
-        <file>Icon/Block.png</file>
-        <file>Icon/ToCheck.png</file>
-        <file>Icon/Validate.png</file>
+    <qresource prefix="/">
+        <file alias="Close">icons/close.png</file>
+        <file alias="New">icons/new.png</file>
+        <file alias="Open">icons/open.png</file>
+        <file alias="Quit">icons/quit.png</file>
+        <file alias="Recent">icons/recent.png</file>
+        <file alias="Save">icons/save.png</file>
+        <file alias="Settings">icons/translator.png</file>
+        <file alias="Error">icons/Block.png</file>
+        <file alias="Warning">icons/ToCheck.png</file>
+        <file alias="Ok">icons/Validate.png</file>
     </qresource>
 </RCC>
