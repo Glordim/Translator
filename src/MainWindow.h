@@ -8,8 +8,10 @@
 #include <QListWidgetItem>
 #include <QMap>
 
+#ifdef USE_WEBENGINE
 #include <QtWebEngine>
 #include <QtWebEngineWidgets/QWebEngineView>
+#endif
 
 namespace Ui
 {
@@ -64,7 +66,9 @@ private:
 
 	Ui::MainWindow *ui;
 
+#ifdef USE_WEBENGINE
 	QWebEngineView* webengine;
+#endif
 
 	QString dirPath;
 	QString projectName;

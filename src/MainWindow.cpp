@@ -30,8 +30,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 {
 	this->ui->setupUi(this);
 
+#ifdef USE_WEBENGINE
 	this->webengine = new QWebEngineView(this->ui->valueAndWebEngineSplitter);
 	this->webengine->show();
+#endif
 
 	QShortcut* shortcut = new QShortcut(QKeySequence::New, this->ui->keyListWidget);
 	this->connect(shortcut, SIGNAL(activated()), this, SLOT(on_addKeyButton_clicked()));
@@ -341,8 +343,11 @@ void MainWindow::on_keyListWidget_itemSelectionChanged()
 		this->RefreshButtonStatus(i);
 	}
 
+#ifdef USE_WEBENGINE
 	QString defaultKey = this->project.GetValue(this->defaultLang, this->selectedKeyItem->text());
 	this->webengine->load(QUrl("https://translate.google.fr/?ie=UTF-8&hl=fr&client=tw-ob#auto/en/" + defaultKey.replace(' ', "%20")));
+	this->webengine->reload();
+#endif
 }
 
 //See closeEditor signal
@@ -520,6 +525,7 @@ void MainWindow::DeleteKey()
 
 void MainWindow::on_valueTableWidget_itemSelectionChanged()
 {
+#ifdef USE_WEBENGINE
 	QList<QTableWidgetItem*> selectedList = this->ui->valueTableWidget->selectedItems();
 
 	if (this->selectedKeyItem == NULL || selectedList.size() == 0)
@@ -537,6 +543,8 @@ void MainWindow::on_valueTableWidget_itemSelectionChanged()
 	QString defaultLangGoogleTraduc = Singleton<LangHelper>::getInstance().GetLangInfo(this->defaultLang).googleTraducName;
 
 	this->webengine->load(QUrl("https://translate.google.fr/?ie=UTF-8&hl=fr&client=tw-ob#" + defaultLangGoogleTraduc + "/" + currentLangGoogleTraduc + "/" + defaultKey.replace(' ', "%20")));
+	this->webengine->reload();
+#endif
 }
 
 void MainWindow::on_valueTableWidget_itemChanged(QTableWidgetItem *item)
