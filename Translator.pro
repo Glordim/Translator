@@ -15,8 +15,8 @@ TEMPLATE = app
 
 #DEFINES += USE_WEBENGINE
 
-contains(DEFINES, USE_WEBENGINE)
-{
+contains(DEFINES, USE_WEBENGINE) {
+
 	QT += webengine webenginewidgets multimedia network
 
 	SOURCES += src/DialogProxy.cpp
