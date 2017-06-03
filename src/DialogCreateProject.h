@@ -18,8 +18,8 @@ class DialogCreateProject : public QDialog
 	Q_OBJECT
 
 public:
-	explicit DialogCreateProject(QWidget *parent = 0, ProjectHelper& project = ProjectHelper(NULL));
-	~DialogCreateProject();
+	DialogCreateProject(QWidget *parent, ProjectHelper& project);
+	virtual ~DialogCreateProject();
 
 protected:
 	void done(int r);
