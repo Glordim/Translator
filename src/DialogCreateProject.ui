@@ -11,37 +11,37 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Project Settings</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="projectNameLayout">
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="projectNameLabel">
        <property name="text">
         <string>Name</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit_2"/>
+      <widget class="QLineEdit" name="projectNameLineEdit"/>
      </item>
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="projectLocationLayout">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="projectLocationLabel">
        <property name="text">
         <string>Location</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="projectLocationLineEdit"/>
      </item>
      <item>
-      <widget class="QToolButton" name="toolButton">
+      <widget class="QToolButton" name="projectLocationFindButton">
        <property name="text">
         <string>...</string>
        </property>
@@ -50,23 +50,23 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="defaultLangLayout">
      <item>
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="defaultLangLabel">
        <property name="text">
         <string>Default Lang</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBox"/>
+      <widget class="QComboBox" name="defaultLangComboBox"/>
      </item>
     </layout>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout">
+    <layout class="QGridLayout" name="langListLayout">
      <item row="0" column="1">
-      <widget class="QLabel" name="label_5">
+      <widget class="QLabel" name="supportedLabel">
        <property name="text">
         <string>Supported</string>
        </property>
@@ -76,9 +76,9 @@
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="label_4">
+      <widget class="QLabel" name="availableLabel">
        <property name="text">
-        <string>Unsupported</string>
+        <string>Available</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
@@ -86,24 +86,24 @@
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QPushButton" name="ButtonAllToSupported">
+      <widget class="QPushButton" name="moveToSupportedButton">
        <property name="text">
         <string>&gt;</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QPushButton" name="ButtonSupportedToAll">
+      <widget class="QPushButton" name="moveToAvailableButton">
        <property name="text">
         <string>&lt;</string>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QListWidget" name="listWidget"/>
+      <widget class="QListWidget" name="availableListWidget"/>
      </item>
      <item row="1" column="1">
-      <widget class="QListWidget" name="listWidget_2"/>
+      <widget class="QListWidget" name="supportedListWidget"/>
      </item>
     </layout>
    </item>

@@ -24,84 +24,45 @@ DialogCreateProject::DialogCreateProject(QWidget *parent, ProjectHelper& project
 	LangHelper& langHelper = Singleton<LangHelper>::getInstance();
 
 	QList<QString> list = langHelper.GetKeyList();
-	/*
-	list.push_back("Afrikaans");
-	list.push_back("Arabic");
-	list.push_back("Basque");
-	list.push_back("Belarusian");
-	list.push_back("Czech");
-	list.push_back("Danish");
-	list.push_back("Dutch");
-	list.push_back("English");
-	list.push_back("Estonian");
-	list.push_back("Faroese");
-	list.push_back("Finnish");
-	list.push_back("French");
-	list.push_back("German");
-	list.push_back("Hebrew");
-	list.push_back("Icelandic");
-	list.push_back("Indonesian");
-	list.push_back("Italian");
-	list.push_back("Japanese");
-	list.push_back("Korean");
-	list.push_back("Latvian");
-	list.push_back("Lithuanian");
-	list.push_back("Norwegian");
-	list.push_back("Polish");
-	list.push_back("Portuguese");
-	list.push_back("Romanian");
-	list.push_back("Russian");
-	list.push_back("Serbo-Croatian");
-	list.push_back("Slovak");
-	list.push_back("Slovenian");
-	list.push_back("Spanish");
-	list.push_back("Swedish");
-	list.push_back("Thai");
-	list.push_back("Turkish");
-	list.push_back("Ukrainian");
-	list.push_back("Hungarian");
-	list.push_back("Vietnamese");
-*/
-	ui->comboBox->addItems(list);
 
-	ui->listWidget->addItems(list);
-	ui->listWidget_2->addItems(list);
+	ui->defaultLangComboBox->addItems(list);
 
-	for (int i = 0; i < ui->listWidget_2->count(); ++i)
-		ui->listWidget_2->item(i)->setHidden(true);
+	ui->availableListWidget->addItems(list);
+	ui->supportedListWidget->addItems(list);
+
+	for (int i = 0; i < ui->supportedListWidget->count(); ++i)
+		ui->supportedListWidget->item(i)->setHidden(true);
 
 	if (this->project.IsOpen() == true)
 	{
-		ui->lineEdit_2->setEnabled(false);
-		ui->lineEdit_2->setText(this->project.GetName());
-
-		ui->lineEdit->setEnabled(false);
+		ui->projectNameLineEdit->setEnabled(false);
+		ui->projectNameLineEdit->setText(this->project.GetName());
 
 		QDir dir = QDir(this->project.GetDirPath());
-		dir.cdUp();
 
-		ui->lineEdit->setText(dir.path());
-		ui->toolButton->setEnabled(false);
+		ui->projectLocationLineEdit->setText(dir.path());
+		ui->projectLocationLineEdit->setEnabled(false);
+		ui->projectLocationFindButton->setEnabled(false);
 
-		ui->comboBox->setCurrentIndex(list.indexOf(this->project.GetDefaultLang()));
+		ui->defaultLangComboBox->setCurrentIndex(list.indexOf(this->project.GetDefaultLang()));
 
 		QList<QString> langList = this->project.GetLangList();
 		int langCount = langList.count();
 
 		for (int i = 0; i < langCount; ++i)
 		{
-			QListWidgetItem* item = this->ui->listWidget->item(list.indexOf(langList[i]));
+			QListWidgetItem* item = this->ui->availableListWidget->item(list.indexOf(langList[i]));
 
-			this->MoveAllToSupported(item);
+			this->MoveToSupported(item);
 		}
 	}
 	else
 	{
-		ui->lineEdit->setEnabled(true);
-		ui->lineEdit_2->setEnabled(true);
-		ui->toolButton->setEnabled(true);
+		ui->projectNameLineEdit->setEnabled(true);
+		ui->projectLocationLineEdit->setEnabled(true);
+		ui->projectLocationFindButton->setEnabled(true);
 
-		ui->comboBox->setCurrentIndex(list.indexOf("English"));
+		ui->defaultLangComboBox->setCurrentIndex(list.indexOf("English"));
 	}
 }
 
@@ -110,65 +71,57 @@ DialogCreateProject::~DialogCreateProject()
 	delete ui;
 }
 
-void DialogCreateProject::on_toolButton_clicked()
+void DialogCreateProject::on_projectLocationFindButton_clicked()
 {
-	// QFileDialog* fileDialog = new QFileDialog(this);
-
-	//fileDialog->set
-	//fileDialog->setFileMode(QFileDialog::Directory);
-
 	QString dir = QFileDialog::getExistingDirectory(this, "Project Location");
-	this->ui->lineEdit->setText(dir);
-	//fileDialog->setFilter(QFileDialog::ShowDirsOnly);
-
-	//fileDialog->show();
+	this->ui->projectLocationLineEdit->setText(dir);
 }
 
-void DialogCreateProject::on_ButtonAllToSupported_clicked()
+void DialogCreateProject::on_moveToSupportedButton_clicked()
 {
-	if (this->ui->listWidget->selectedItems().empty())
+	if (this->ui->availableListWidget->selectedItems().empty())
 		return ;
 
-	this->MoveAllToSupported(this->ui->listWidget->selectedItems()[0]);
+	this->MoveToSupported(this->ui->availableListWidget->selectedItems()[0]);
 }
 
-void DialogCreateProject::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
+void DialogCreateProject::on_availableListWidget_itemDoubleClicked(QListWidgetItem *item)
 {
-	this->MoveAllToSupported(item);
+	this->MoveToSupported(item);
 }
 
-void DialogCreateProject::MoveAllToSupported(QListWidgetItem *item)
+void DialogCreateProject::MoveToSupported(QListWidgetItem *item)
 {
 	item->setHidden(true);
-	int row = this->ui->listWidget->row(item);
-	this->ui->listWidget_2->item(row)->setHidden(false);
+	int row = this->ui->availableListWidget->row(item);
+	this->ui->supportedListWidget->item(row)->setHidden(false);
 }
 
-void DialogCreateProject::on_ButtonSupportedToAll_clicked()
+void DialogCreateProject::on_moveToAvailableButton_clicked()
 {
-	if (this->ui->listWidget_2->selectedItems().empty())
+	if (this->ui->supportedListWidget->selectedItems().empty())
 		return ;
 
-	this->MoveSupportedToAll(this->ui->listWidget_2->selectedItems()[0]);
+	this->MoveToAvailable(this->ui->supportedListWidget->selectedItems()[0]);
 }
 
-void DialogCreateProject::on_listWidget_2_itemDoubleClicked(QListWidgetItem *item)
+void DialogCreateProject::on_supportedListWidget_itemDoubleClicked(QListWidgetItem *item)
 {
-	this->MoveSupportedToAll(item);
+	this->MoveToAvailable(item);
 }
 
-void DialogCreateProject::MoveSupportedToAll(QListWidgetItem *item)
+void DialogCreateProject::MoveToAvailable(QListWidgetItem *item)
 {
 	item->setHidden(true);
-	int row = this->ui->listWidget_2->row(item);
-	this->ui->listWidget->item(row)->setHidden(false);
+	int row = this->ui->supportedListWidget->row(item);
+	this->ui->availableListWidget->item(row)->setHidden(false);
 }
 
 void DialogCreateProject::done(int r)
 {
 	if (QDialog::Accepted == r)
 	{
-		QString projectName = this->ui->lineEdit_2->text();
+		QString projectName = this->ui->projectNameLineEdit->text();
 
 		if (projectName == "")
 		{
@@ -176,22 +129,22 @@ void DialogCreateProject::done(int r)
 			messageBox.critical(0,"Error","Project name empty !");
 			return ;
 		}
-		QDir dir(this->ui->lineEdit->text());
-		if (dir.exists() == false || this->ui->lineEdit->text() == "")
+		QDir dir(this->ui->projectLocationLineEdit->text());
+		if (dir.exists() == false || this->ui->projectLocationLineEdit->text() == "")
 		{
 			QMessageBox messageBox;
 			messageBox.critical(0,"Error","Project location invalid !");
 			return ;
 		}
 
-		QString defaultLang = this->ui->comboBox->currentText();
+		QString defaultLang = this->ui->defaultLangComboBox->currentText();
 
 		QStringList supportedLang;
 
-		for (int i = 0; i < ui->listWidget_2->count(); ++i)
+		for (int i = 0; i < ui->supportedListWidget->count(); ++i)
 		{
-			if (ui->listWidget_2->item(i)->isHidden() == false)
-				supportedLang.push_back(ui->listWidget_2->item(i)->text());
+			if (ui->supportedListWidget->item(i)->isHidden() == false)
+				supportedLang.push_back(ui->supportedListWidget->item(i)->text());
 		}
 
 		if (supportedLang.contains(defaultLang) == false)
@@ -220,7 +173,7 @@ void DialogCreateProject::done(int r)
 			}
 
 			foreach (QString lang, deleteList)
-				QFile::remove(dir.absolutePath() + "/" + projectName + "/" + lang + ".lang");
+				QFile::remove(dir.absolutePath() + "/" + lang + ".lang");
 		}
 		else
 		{
@@ -247,7 +200,7 @@ void DialogCreateProject::done(int r)
 
 		dom->appendChild(dom_element);
 
-		QString filePath = dir.absolutePath() + "/" + projectName + "/" + projectName + ".trans";
+		QString filePath = dir.absolutePath() + "/" + projectName + ".trans";
 		QFile file(filePath);
 		if (file.open(QIODevice::WriteOnly) == false)
 		{

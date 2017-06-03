@@ -25,20 +25,18 @@ protected:
 	void done(int r);
 
 private slots:
-	void on_toolButton_clicked();
+	void on_projectLocationFindButton_clicked();
 
-	void on_ButtonAllToSupported_clicked();
+	void on_moveToSupportedButton_clicked();
+	void on_moveToAvailableButton_clicked();
 
-	void on_ButtonSupportedToAll_clicked();
-
-	void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
-
-	void on_listWidget_2_itemDoubleClicked(QListWidgetItem *item);
+	void on_availableListWidget_itemDoubleClicked(QListWidgetItem *item);
+	void on_supportedListWidget_itemDoubleClicked(QListWidgetItem *item);
 
 private:
 
-	void MoveSupportedToAll(QListWidgetItem *item);
-	void MoveAllToSupported(QListWidgetItem *item);
+	void MoveToAvailable(QListWidgetItem *item);
+	void MoveToSupported(QListWidgetItem *item);
 
 	Ui::DialogCreateProject *ui;
 
