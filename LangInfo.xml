@@ -2,37 +2,37 @@
 	<LangInfo Display="Afrikaans" Saved="Afrikaans" GoogleTraduc="af" />
 	<LangInfo Display="Arabic" Saved="Arabic" GoogleTraduc="ar" />
 	<LangInfo Display="Basque" Saved="Basque" GoogleTraduc="eu" />
-	<LangInfo Display="Belarusian" Saved="Belarusian" GoogleTraduc="todo" />
-	<LangInfo Display="Czech" Saved="Czech" GoogleTraduc="todo" />
-	<LangInfo Display="Danish" Saved="Danish" GoogleTraduc="todo" />
-	<LangInfo Display="Dutch" Saved="Dutch" GoogleTraduc="todo" />
+	<LangInfo Display="Belarusian" Saved="Belarusian" GoogleTraduc="be" />
+	<LangInfo Display="Czech" Saved="Czech" GoogleTraduc="cs" />
+	<LangInfo Display="Danish" Saved="Danish" GoogleTraduc="da" />
+	<LangInfo Display="Dutch" Saved="Dutch" GoogleTraduc="nl" />
 	<LangInfo Display="English" Saved="English" GoogleTraduc="en" />
-	<LangInfo Display="Estonian" Saved="Estonian" GoogleTraduc="todo" />
+	<LangInfo Display="Estonian" Saved="Estonian" GoogleTraduc="et" />
 	<LangInfo Display="Faroese" Saved="Faroese" GoogleTraduc="todo" />
-	<LangInfo Display="Finnish" Saved="Finnish" GoogleTraduc="todo" />
+	<LangInfo Display="Finnish" Saved="Finnish" GoogleTraduc="fi" />
 	<LangInfo Display="French" Saved="French" GoogleTraduc="fr" />
 	<LangInfo Display="German" Saved="German" GoogleTraduc="de" />
-	<LangInfo Display="Hebrew" Saved="Hebrew" GoogleTraduc="todo" />
-	<LangInfo Display="Icelandic" Saved="Icelandic" GoogleTraduc="todo" />
-	<LangInfo Display="Indonesian" Saved="Indonesian" GoogleTraduc="todo" />
-	<LangInfo Display="Italian" Saved="Italian" GoogleTraduc="todo" />
+	<LangInfo Display="Hebrew" Saved="Hebrew" GoogleTraduc="iw" />
+	<LangInfo Display="Icelandic" Saved="Icelandic" GoogleTraduc="is" />
+	<LangInfo Display="Indonesian" Saved="Indonesian" GoogleTraduc="id" />
+	<LangInfo Display="Italian" Saved="Italian" GoogleTraduc="it" />
 	<LangInfo Display="Japanese" Saved="Japanese" GoogleTraduc="ja" />
-	<LangInfo Display="Korean" Saved="Korean" GoogleTraduc="todo" />
-	<LangInfo Display="Latvian" Saved="Latvian" GoogleTraduc="todo" />
-	<LangInfo Display="Lithuanian" Saved="Lithuanian" GoogleTraduc="todo" />
-	<LangInfo Display="Norwegian" Saved="Norwegian" GoogleTraduc="todo" />
-	<LangInfo Display="Polish" Saved="Polish" GoogleTraduc="todo" />
-	<LangInfo Display="Portuguese" Saved="Portuguese" GoogleTraduc="todo" />
-	<LangInfo Display="Romanian" Saved="Romanian" GoogleTraduc="todo" />
-	<LangInfo Display="Russian" Saved="Russian" GoogleTraduc="todo" />
-	<LangInfo Display="Serbo-Croatian" Saved="Serbo-Croatian" GoogleTraduc="todo" />
-	<LangInfo Display="Slovak" Saved="Slovak" GoogleTraduc="todo" />
-	<LangInfo Display="Slovenian" Saved="Slovenian" GoogleTraduc="todo" />
+	<LangInfo Display="Korean" Saved="Korean" GoogleTraduc="ko" />
+	<LangInfo Display="Latvian" Saved="Latvian" GoogleTraduc="lv" />
+	<LangInfo Display="Lithuanian" Saved="Lithuanian" GoogleTraduc="lt" />
+	<LangInfo Display="Norwegian" Saved="Norwegian" GoogleTraduc="no" />
+	<LangInfo Display="Polish" Saved="Polish" GoogleTraduc="pl" />
+	<LangInfo Display="Portuguese" Saved="Portuguese" GoogleTraduc="pt" />
+	<LangInfo Display="Romanian" Saved="Romanian" GoogleTraduc="ro" />
+	<LangInfo Display="Russian" Saved="Russian" GoogleTraduc="ru" />
+	<LangInfo Display="Serbo-Croatian" Saved="Serbo-Croatian" GoogleTraduc="sr" />
+	<LangInfo Display="Slovak" Saved="Slovak" GoogleTraduc="sk" />
+	<LangInfo Display="Slovenian" Saved="Slovenian" GoogleTraduc="sl" />
 	<LangInfo Display="Spanish" Saved="Spanish" GoogleTraduc="es" />
-	<LangInfo Display="Swedish" Saved="Swedish" GoogleTraduc="todo" />
-	<LangInfo Display="Thai" Saved="Thai" GoogleTraduc="todo" />
-	<LangInfo Display="Turkish" Saved="Turkish" GoogleTraduc="todo" />
-	<LangInfo Display="Ukrainian" Saved="Ukrainian" GoogleTraduc="todo" />
-	<LangInfo Display="Hungarian" Saved="Hungarian" GoogleTraduc="todo" />
-	<LangInfo Display="Vietnamese" Saved="Vietnamese" GoogleTraduc="todo" />
+	<LangInfo Display="Swedish" Saved="Swedish" GoogleTraduc="sv" />
+	<LangInfo Display="Thai" Saved="Thai" GoogleTraduc="th" />
+	<LangInfo Display="Turkish" Saved="Turkish" GoogleTraduc="tr" />
+	<LangInfo Display="Ukrainian" Saved="Ukrainian" GoogleTraduc="uk" />
+	<LangInfo Display="Hungarian" Saved="Hungarian" GoogleTraduc="hu" />
+	<LangInfo Display="Vietnamese" Saved="Vietnamese" GoogleTraduc="vi" />
 </LangList>	
