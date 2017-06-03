@@ -232,7 +232,7 @@ void DialogCreateProject::done(int r)
 			}
 		}
 
-		QDomDocument* dom = new QDomDocument(projectName + ".proj");
+		QDomDocument* dom = new QDomDocument(projectName + ".trans");
 		QDomElement dom_element = dom->createElement("Project");
 		dom_element.setAttribute("Name", projectName);
 
@@ -247,7 +247,7 @@ void DialogCreateProject::done(int r)
 
 		dom->appendChild(dom_element);
 
-		QString filePath = dir.absolutePath() + "/" + projectName + "/" + projectName + ".proj";
+		QString filePath = dir.absolutePath() + "/" + projectName + "/" + projectName + ".trans";
 		QFile file(filePath);
 		if (file.open(QIODevice::WriteOnly) == false)
 		{
