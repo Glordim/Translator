@@ -343,11 +343,7 @@ void MainWindow::on_keyListWidget_itemSelectionChanged()
 		this->RefreshButtonStatus(i);
 	}
 
-#ifdef USE_WEBENGINE
-	QString defaultKey = this->project.GetValue(this->defaultLang, this->selectedKeyItem->text());
-	this->webengine->load(QUrl("https://translate.google.fr/?ie=UTF-8&hl=fr&client=tw-ob#auto/en/" + defaultKey.replace(' ', "%20")));
-	this->webengine->reload();
-#endif
+	this->RefreshWebView();
 }
 
 //See closeEditor signal
@@ -523,28 +519,35 @@ void MainWindow::DeleteKey()
 
 //  === Value Table ===
 
-void MainWindow::on_valueTableWidget_itemSelectionChanged()
+void MainWindow::RefreshWebView()
 {
 #ifdef USE_WEBENGINE
-	QList<QTableWidgetItem*> selectedList = this->ui->valueTableWidget->selectedItems();
-
-	if (this->selectedKeyItem == NULL || selectedList.size() == 0)
+	if (this->selectedKeyItem == NULL)
 		return;
 
-	QTableWidgetItem* item = selectedList[0];
+	QString valueForDefaultLang = this->project.GetValue(this->defaultLang, this->selectedKeyItem->text());
+	QString lang = this->defaultLang;
 
-	//QTextEdit* textEdit = (QTextEdit*)this->ui->valueTableWidget->cellWidget(item->row(), 0);
+	QList<QTableWidgetItem*> selectedList = this->ui->valueTableWidget->selectedItems();
 
-	QString defaultKey = this->project.GetValue(this->defaultLang, this->selectedKeyItem->text());
-	QString lang = this->ui->valueTableWidget->verticalHeaderItem(item->row())->text();
-	qDebug() << lang;
+	if (selectedList.size() > 0)
+	{
+		QTableWidgetItem* item = selectedList[0];
+
+		lang = this->ui->valueTableWidget->verticalHeaderItem(item->row())->text();
+	}
 
 	QString currentLangGoogleTraduc = Singleton<LangHelper>::getInstance().GetLangInfo(lang).googleTraducName;
 	QString defaultLangGoogleTraduc = Singleton<LangHelper>::getInstance().GetLangInfo(this->defaultLang).googleTraducName;
 
-	this->webengine->load(QUrl("https://translate.google.fr/?ie=UTF-8&hl=fr&client=tw-ob#" + defaultLangGoogleTraduc + "/" + currentLangGoogleTraduc + "/" + defaultKey.replace(' ', "%20")));
+	this->webengine->load(QUrl("https://translate.google.com/?ie=UTF-8&hl=fr&client=tw-ob#" + defaultLangGoogleTraduc + "/" + currentLangGoogleTraduc + "/" + valueForDefaultLang.replace(' ', "%20")));
 	this->webengine->reload();
 #endif
+}
+
+void MainWindow::on_valueTableWidget_itemSelectionChanged()
+{
+	this->RefreshWebView();
 }
 
 void MainWindow::on_valueTableWidget_itemChanged(QTableWidgetItem *item)

@@ -28,6 +28,7 @@ public:
 
 	void LoadProject(const QString& path);
 
+	void RefreshWebView();
 	void RefreshButtonStatus(int index);
 	void RefreshListKeyStatus(QListWidgetItem* item);
 
