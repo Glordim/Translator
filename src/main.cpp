@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
 	LangHelper& langHelper = Singleton<LangHelper>::getInstance();
 
-	if (langHelper.Load("./LangInfo.xml") == false)
+	if (langHelper.Load(QApplication::applicationDirPath() + "/LangInfo.xml") == false)
 		return EXIT_FAILURE;
 
 	MainWindow win;

@@ -59,15 +59,23 @@ defineTest(copyToDestdir) {
 
 	for(FILE, files) {
 
-		DDIR = $$OUT_PWD
+		DDIR = "$$OUT_PWD"
+		DDIR_RELEASE = "$$OUT_PWD/release"
+		DDIR_DEBUG = "$$OUT_PWD/debug"
 
 		# Replace slashes in paths with backslashes for Windows
 		win32:FILE ~= s,/,\\,g
 		win32:DDIR ~= s,/,\\,g
+		win32:DDIR_RELEASE ~= s,/,\\,g
+		win32:DDIR_DEBUG ~= s,/,\\,g
 
 		message($$QMAKE_COPY $$quote($$FILE) $$quote($$DDIR))
+		message($$QMAKE_COPY $$quote($$FILE) $$quote($$DDIR_RELEASE))
+		message($$QMAKE_COPY $$quote($$FILE) $$quote($$DDIR_DEBUG))
 
 		QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$FILE) $$quote($$DDIR) $$escape_expand(\\n\\t)
+		QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$FILE) $$quote($$DDIR_RELEASE) $$escape_expand(\\n\\t)
+		QMAKE_POST_LINK += $$QMAKE_COPY $$quote($$FILE) $$quote($$DDIR_DEBUG) $$escape_expand(\\n\\t)
 	}
 
 	message("End Copy.")

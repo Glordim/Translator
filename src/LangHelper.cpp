@@ -15,7 +15,7 @@ bool LangHelper::Load(const QString& path)
 
 	if (file.open(QIODevice::ReadOnly) == false)
 	{
-		QMessageBox::critical(NULL,"Error", "./LangInfo.xml: " + file.errorString());
+		QMessageBox::critical(NULL,"Error", path + ": " + file.errorString());
 
 		return false;
 	}
