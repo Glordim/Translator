@@ -47,6 +47,8 @@ FORMS += src/MainWindow.ui \
 
 RESOURCES += resources.qrc
 
+RC_FILE = Translator.rc
+
 OTHER_FILES += $$PWD/LangInfo.xml
 
 ### Copy LangInfo.xml ###
