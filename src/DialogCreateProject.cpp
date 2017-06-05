@@ -1,18 +1,14 @@
+#include "Singleton.h"
+#include "LangHelper.h"
+#include "MainWindow.h"
 #include "DialogCreateProject.h"
 #include "ui_DialogCreateProject.h"
 
-#include "MainWindow.h"
-
+#include <QtXml>
 #include <QCloseEvent>
-
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QErrorMessage>
-
-#include <QtXml>
-
-#include "Singleton.h"
-#include "LangHelper.h"
 
 DialogCreateProject::DialogCreateProject(QWidget *parent, ProjectHelper& project) :
 	QDialog(parent),
@@ -30,8 +26,11 @@ DialogCreateProject::DialogCreateProject(QWidget *parent, ProjectHelper& project
 	ui->availableListWidget->addItems(list);
 	ui->supportedListWidget->addItems(list);
 
-	for (int i = 0; i < ui->supportedListWidget->count(); ++i)
+	int supportedCount = ui->supportedListWidget->count();
+	for (int i = 0; i < supportedCount; ++i)
+	{
 		ui->supportedListWidget->item(i)->setHidden(true);
+	}
 
 	if (this->project.IsOpen() == true)
 	{
@@ -47,8 +46,8 @@ DialogCreateProject::DialogCreateProject(QWidget *parent, ProjectHelper& project
 		ui->defaultLangComboBox->setCurrentIndex(list.indexOf(this->project.GetDefaultLang()));
 
 		QList<QString> langList = this->project.GetLangList();
-		int langCount = langList.count();
 
+		int langCount = langList.count();
 		for (int i = 0; i < langCount; ++i)
 		{
 			QListWidgetItem* item = this->ui->availableListWidget->item(list.indexOf(langList[i]));
@@ -79,7 +78,7 @@ void DialogCreateProject::on_projectLocationFindButton_clicked()
 
 void DialogCreateProject::on_moveToSupportedButton_clicked()
 {
-	if (this->ui->availableListWidget->selectedItems().empty())
+	if (this->ui->availableListWidget->selectedItems().empty() == true)
 		return ;
 
 	this->MoveToSupported(this->ui->availableListWidget->selectedItems()[0]);
@@ -99,7 +98,7 @@ void DialogCreateProject::MoveToSupported(QListWidgetItem *item)
 
 void DialogCreateProject::on_moveToAvailableButton_clicked()
 {
-	if (this->ui->supportedListWidget->selectedItems().empty())
+	if (this->ui->supportedListWidget->selectedItems().empty() == true)
 		return ;
 
 	this->MoveToAvailable(this->ui->supportedListWidget->selectedItems()[0]);
@@ -125,15 +124,13 @@ void DialogCreateProject::done(int r)
 
 		if (projectName == "")
 		{
-			QMessageBox messageBox;
-			messageBox.critical(0,"Error","Project name empty !");
+			QMessageBox::critical(0, "Error", "Project name empty !");
 			return ;
 		}
 		QDir dir(this->ui->projectLocationLineEdit->text());
 		if (dir.exists() == false || this->ui->projectLocationLineEdit->text() == "")
 		{
-			QMessageBox messageBox;
-			messageBox.critical(0,"Error","Project location invalid !");
+			QMessageBox::critical(0, "Error", "Project location invalid !");
 			return ;
 		}
 
@@ -141,7 +138,8 @@ void DialogCreateProject::done(int r)
 
 		QStringList supportedLang;
 
-		for (int i = 0; i < ui->supportedListWidget->count(); ++i)
+		int supportedCount = ui->supportedListWidget->count();
+		for (int i = 0; i < supportedCount; ++i)
 		{
 			if (ui->supportedListWidget->item(i)->isHidden() == false)
 				supportedLang.push_back(ui->supportedListWidget->item(i)->text());
@@ -149,18 +147,16 @@ void DialogCreateProject::done(int r)
 
 		if (supportedLang.contains(defaultLang) == false)
 		{
-			QMessageBox messageBox;
-			messageBox.critical(0,"Error","Default Lang is not in Supported Lang !");
+			QMessageBox::critical(0, "Error", "Default Lang is not in Supported Lang !");
 			return ;
 		}
 
 		if (this->project.IsOpen() == true)
 		{
 			QList<QString> langList = this->project.GetLangList();
-			int langCount = langList.count();
-
 			QList<QString> deleteList;
 
+			int langCount = langList.count();
 			for (int i = 0; i < langCount; ++i)
 			{
 				if (supportedLang.contains(langList[i]) == false)
@@ -173,14 +169,15 @@ void DialogCreateProject::done(int r)
 			}
 
 			foreach (QString lang, deleteList)
+			{
 				QFile::remove(dir.absolutePath() + "/" + lang + ".lang");
+			}
 		}
 		else
 		{
 			if (dir.mkdir(projectName) == false)
 			{
-				QMessageBox messageBox;
-				messageBox.critical(0,"Error","Create Project Dir Failed !");
+				QMessageBox::critical(0, "Error", "Create Project Dir Failed !");
 				return ;
 			}
 		}
@@ -189,12 +186,15 @@ void DialogCreateProject::done(int r)
 		QDomElement dom_element = dom->createElement("Project");
 		dom_element.setAttribute("Name", projectName);
 
-		for (int i = 0; i < supportedLang.count(); ++i)
+		supportedCount = supportedLang.count();
+		for (int i = 0; i < supportedCount; ++i)
 		{
 			QDomElement lang_element = dom->createElement("Lang");
 			lang_element.setAttribute("Name", supportedLang[i]);
+
 			if (supportedLang[i] == defaultLang)
 				lang_element.setAttribute("IsDefault", "True");
+
 			dom_element.appendChild(lang_element);
 		}
 
@@ -204,8 +204,7 @@ void DialogCreateProject::done(int r)
 		QFile file(filePath);
 		if (file.open(QIODevice::WriteOnly) == false)
 		{
-			file.close();
-			QMessageBox::critical(this,"Erreur","Impossible d'écrire dans le document XML");
+			QMessageBox::critical(this, "Erreur", "Impossible d'écrire dans le document XML");
 			return;
 		}
 
@@ -216,7 +215,9 @@ void DialogCreateProject::done(int r)
 		QObject* obj = this;
 
 		while (obj->parent() != NULL)
+		{
 			obj = obj->parent();
+		}
 
 		MainWindow* main = static_cast<MainWindow*>(obj);
 
@@ -225,6 +226,8 @@ void DialogCreateProject::done(int r)
 		QDialog::done(r);
 	}
 	else
+	{
 		QDialog::done(r);
+	}
 }
 

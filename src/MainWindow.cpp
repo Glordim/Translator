@@ -151,10 +151,7 @@ void MainWindow::OnClickButtonStatus(int index)
 
 	QString lang = this->project.GetLangList()[index];
 
-	qDebug() << "test -> " << lang;
 	KeyStatus status = this->project.GetStatus(lang, this->selectedKeyItem->text());
-
-	qDebug() << "status -> " << KeyValue::StatusToString(status);
 
 	if (status == KeyStatus::Block)
 		return;
@@ -163,11 +160,6 @@ void MainWindow::OnClickButtonStatus(int index)
 		status = KeyStatus::Validate;
 	else
 		status = KeyStatus::ToCheck;
-
-	//    status = (KeyStatus)((int)status + 1);
-	//    status = (KeyStatus)((int)status % (int)KeyStatus::Nb);
-
-	qDebug() << "new status -> " << KeyValue::StatusToString(status);
 
 	this->project.SetStatus(lang, this->selectedKeyItem->text(), status);
 
@@ -203,7 +195,8 @@ void MainWindow::RefreshListKeyStatus(QListWidgetItem* item)
 	bool containToCheck = false;
 	bool containAllValidate = true;
 
-	for (int i = 0; i < langList.count(); ++i)
+	int langCount = langList.count();
+	for (int i = 0; i < langCount; ++i)
 	{
 		KeyStatus status = this->project.GetStatus(langList[i], item->text());
 
@@ -237,10 +230,11 @@ void MainWindow::RefreshListKeyStatus(QListWidgetItem* item)
 
 void MainWindow::on_searchKeyLineEdit_textChanged(const QString& searchValue)
 {
-	for (int i = 0; i < this->ui->keyListWidget->count(); ++i)
+	int keyCount = this->ui->keyListWidget->count();
+	for (int i = 0; i < keyCount; ++i)
 	{
 		bool finded = this->ui->keyListWidget->item(i)->text().contains(searchValue, Qt::CaseInsensitive);
-		this->ui->keyListWidget->item(i)->setHidden(!finded);
+		this->ui->keyListWidget->item(i)->setHidden(finded == false);
 	}
 }
 
@@ -269,8 +263,8 @@ void MainWindow::on_keyListWidget_itemSelectionChanged()
 	this->selectedKeyItem = selectedKeys[0];
 
 	QList<QString> langList = this->project.GetLangList();
-	int langCount = langList.count();
 
+	int langCount = langList.count();
 	for (int i = 0; i < langCount; ++i)
 	{
 		QString text = this->project.GetValue(this->ui->valueTableWidget->verticalHeaderItem(i)->text(), this->selectedKeyItem->text());
@@ -562,7 +556,9 @@ void MainWindow::CloseProject()
 
 	this->ui->keyListWidget->clear();
 	while (ui->valueTableWidget->rowCount() != 0)
+	{
 		this->ui->valueTableWidget->removeRow(this->ui->valueTableWidget->rowCount() -1);
+	}
 	this->ui->searchKeyLineEdit->setText("");
 
 	this->ui->keyListWidget->setEnabled(false);

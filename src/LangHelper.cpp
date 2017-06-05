@@ -12,11 +12,9 @@ LangHelper::LangHelper(void)
 bool LangHelper::Load(const QString& path)
 {
 	QFile file(path);
-
 	if (file.open(QIODevice::ReadOnly) == false)
 	{
-		QMessageBox::critical(NULL,"Error", path + ": " + file.errorString());
-
+		QMessageBox::critical(NULL, "Error", path + ": " + file.errorString());
 		return false;
 	}
 

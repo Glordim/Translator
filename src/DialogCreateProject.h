@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QAbstractButton>
-
 #include <QListWidgetItem>
 
 #include "ProjectHelper.h"

@@ -3,7 +3,6 @@
 #include <QFile>
 #include <QtXml>
 #include <QFileInfo>
-
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QErrorMessage>
@@ -11,7 +10,6 @@
 ProjectHelper::ProjectHelper(QWidget* mainWindow) :
 	mainWindow(mainWindow)
 {
-	//this->mainWindow = mainWindow;
 	this->Close();
 }
 
@@ -73,17 +71,19 @@ bool ProjectHelper::ContainsKey(const QString& keyName) const
 void ProjectHelper::RemoveKey(const QString& keyName)
 {
 	QList<QString> langList = this->allData.keys();
-	int langCount = langList.count();
 
+	int langCount = langList.count();
 	for (int i = 0; i < langCount; ++i)
+	{
 		this->allData[langList[i]].remove(keyName);
+	}
 }
 
 void ProjectHelper::RenameKey(const QString& oldKeyName, const QString& newKeyName)
 {
 	QList<QString> langList = this->allData.keys();
-	int langCount = langList.count();
 
+	int langCount = langList.count();
 	for (int i = 0; i < langCount; ++i)
 	{
 		QString lang = langList[i];
@@ -123,16 +123,16 @@ bool ProjectHelper::Load(const QString& path)
 	QStringList supportedLang;
 
 	QDomElement docElem = dom->documentElement();
-	QDomNode n = docElem.firstChild();
+	QDomNode node = docElem.firstChild();
 
-	while (n.isNull() == false)
+	while (node.isNull() == false)
 	{
-		QDomElement e = n.toElement();
+		QDomElement element = node.toElement();
 
-		if (e.tagName() == "Lang")
+		if (element.tagName() == "Lang")
 		{
-			QString lang = e.attribute("Name");
-			QString isDefault = e.attribute("IsDefault");
+			QString lang = element.attribute("Name");
+			QString isDefault = element.attribute("IsDefault");
 
 			if (isDefault == "True")
 				this->defaultLang = lang;
@@ -142,12 +142,12 @@ bool ProjectHelper::Load(const QString& path)
 			this->LoadLang(fileInfo.absolutePath() + "/" + lang + ".lang");
 		}
 
-		n = n.nextSibling();
+		node = node.nextSibling();
 	}
 
 	QString configLocation = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
 
-	if (configLocation.isEmpty())
+	if (configLocation.isEmpty() == true)
 		return true;
 
 	QDir configDir(configLocation);
@@ -170,8 +170,7 @@ bool ProjectHelper::Load(const QString& path)
 
 	if (configFile.open(QIODevice::WriteOnly) == false)
 	{
-		configFile.close();
-		QMessageBox::critical(this->mainWindow,"Erreur","Impossible d'écrire dans le document XML");
+		QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'écrire dans le document XML");
 		return true;
 	}
 
@@ -190,7 +189,7 @@ bool ProjectHelper::LoadLang(const QString& path)
 	if (file.open(QIODevice::ReadOnly) == false)
 	{
 		file.close();
-		//QMessageBox::critical(this->mainWindow,"Erreur","Impossible d'ouvrir en lecture le fichier de lang");
+		//QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'ouvrir en lecture le fichier de lang");
 		return false;
 	}
 
@@ -210,23 +209,23 @@ bool ProjectHelper::LoadLang(const QString& path)
 
 	QString lang = fileInfo.baseName();
 
-	QDomNode n = docElem.firstChild();
+	QDomNode node = docElem.firstChild();
 
-	while (n.isNull() == false)
+	while (node.isNull() == false)
 	{
-		QDomElement e = n.toElement();
+		QDomElement element = node.toElement();
 
-		if (e.tagName() == "Loca")
+		if (element.tagName() == "Loca")
 		{
-			QString key = e.attribute("Key");
-			QString value = e.attribute("Value");
-			KeyStatus status = (KeyStatus)e.attribute("Status").toInt();
+			QString key = element.attribute("Key");
+			QString value = element.attribute("Value");
+			KeyStatus status = (KeyStatus)element.attribute("Status").toInt();
 
 			this->allData[lang][key].value = value;
 			this->allData[lang][key].status = status;
 		}
 
-		n = n.nextSibling();
+		node = node.nextSibling();
 	}
 
 	return true;
@@ -257,29 +256,33 @@ bool ProjectHelper::Save()
 	return true;
 }
 
-bool ProjectHelper::SaveLang(const QString& key)
+bool ProjectHelper::SaveLang(const QString& lang)
 {
 	QDomDocument* dom = new QDomDocument();
 /*
 	QDomProcessingInstruction xmlProcessingInstruction = dom->createProcessingInstruction("xml", "version=\"1.0\"");
 	dom->appendChild(xmlProcessingInstruction);
 */
-	QDomElement dom_element = dom->createElement(key);
+	QDomElement dom_element = dom->createElement(lang);
 	//dom_element.setAttribute("Name", projectName);
 
 	bool warning = false;
 	QString keyEmpty;
 
-	for (int i = 0; i < this->allData[key].keys().count(); ++i)
+	QMap<QString, KeyValue> keyValueMap = this->allData[lang];
+	QList<QString> keyList = keyValueMap.keys();
+
+	int keyCount = keyList.count();
+	for (int i = 0; i < keyCount; ++i)
 	{
-		QString currentKey = this->allData[key].keys()[i];
-		const KeyValue& keyVal = this->allData[key][currentKey];
+		QString currentKey = keyList[i];
+		const KeyValue& keyVal = keyValueMap[currentKey];
 
 		QDomElement lang_element = dom->createElement("Loca");
 		lang_element.setAttribute("Key", currentKey);
 		lang_element.setAttribute("Value", keyVal.value);
 		lang_element.setAttribute("Status", (int)(keyVal.status));
-		if (key == this->defaultLang && this->allData[key][currentKey].value == "")
+		if (lang == this->defaultLang && keyVal.value == "")
 		{
 			warning = true;
 			keyEmpty = currentKey;
@@ -289,12 +292,11 @@ bool ProjectHelper::SaveLang(const QString& key)
 
 	dom->appendChild(dom_element);
 
-	QString filePath = this->dirPath + "/" + key + ".lang";
+	QString filePath = this->dirPath + "/" + lang + ".lang";
 	QFile file(filePath);
 	if (file.open(QIODevice::WriteOnly) == false)
 	{
-		file.close();
-		QMessageBox::critical(this->mainWindow,"Erreur","Impossible d'écrire dans le document XML");
+		QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'écrire dans le document XML");
 		return false;
 	}
 
@@ -302,8 +304,8 @@ bool ProjectHelper::SaveLang(const QString& key)
 	stream << dom->toString();
 	file.close();
 
-	if (warning)
-		QMessageBox::warning(this->mainWindow,"Warning","La langue par default contient des champs vide !\n(Key = " + keyEmpty + " )");
+	if (warning == true)
+		QMessageBox::warning(this->mainWindow, "Warning", "La langue par default contient des champs vide !\n(Key = " + keyEmpty + " )");
 
 	return true;
 }
