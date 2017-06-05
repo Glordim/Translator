@@ -1,32 +1,24 @@
+#include "Singleton.h"
+#include "LangHelper.h"
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
-
 #include "DialogCreateProject.h"
 
-#include <QtXml>
-#include <QFileInfo>
-
-#include <QFileDialog>
-
+#include <iostream>
 #include <QShortcut>
-#include <QKeySequence>
-
+#include <QTextEdit>
+#include <QScrollBar>
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QKeySequence>
+#include <QSignalMapper>
 #include <QErrorMessage>
 #include <QStandardPaths>
 
-#include <QScrollBar>
-
-#include <QTextEdit>
-
-#include <iostream>
-
-#include <Singleton.h>
-#include <LangHelper.h>
-
-#include <QSignalMapper>
-
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow), project(this)
+MainWindow::MainWindow(QWidget *parent) :
+	QMainWindow(parent),
+	ui(new Ui::MainWindow),
+	project(this)
 {
 	this->ui->setupUi(this);
 
@@ -45,63 +37,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 	this->connect(shortcut, SIGNAL(activated()), this, SLOT(on_deleteKeyButton_clicked()));
 
 	this->CloseProject();
-
-	QString configLocation = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-
-	if (configLocation.isEmpty())
-		return;
-
-	QDir configDir(configLocation);
-
-	if (configDir.exists() == false)
-	{
-		return;
-	}
-
-	QFile configFile(configDir.absolutePath() + "/" + "preference.cfg");
-	if (!configFile.open(QIODevice::ReadOnly))
-	{
-		configFile.close();
-		QMessageBox::critical(this,"Erreur","Impossible d'ouvrir en lecture le projet");
-		return;
-	}
-
-	QDomDocument* dom = new QDomDocument(configFile.fileName());
-
-	if (!dom->setContent(&configFile))
-	{
-		configFile.close();
-		return;
-	}
-
-	configFile.close();
-
-	QDomElement docElem = dom->documentElement();
-	QDomNode n = docElem.firstChild();
-
-	QString lastProjectPath;
-
-	while(n.isNull() == false)
-	{
-		QDomElement e = n.toElement();
-
-		if (e.tagName() == "Line")
-		{
-			if (e.hasAttribute("LastProject"))
-				lastProjectPath = e.attribute("LastProject");
-		}
-
-		n = n.nextSibling();
-	}
-
-	if (lastProjectPath.isEmpty() == false)
-		this->LoadProject(lastProjectPath);
 }
 
-void MainWindow::LoadProject(const QString& path)
+bool MainWindow::LoadProject(const QString& path)
 {
 	if (this->project.Load(path) == false)
-		return;
+		return false;
+
 	this->defaultLang = this->project.GetDefaultLang();
 
 	this->ui->keyListWidget->clear();
@@ -138,7 +80,9 @@ void MainWindow::LoadProject(const QString& path)
 	this->ui->valueTableWidget->setColumnWidth(1, 32);
 
 	while (this->ui->valueTableWidget->rowCount() != 0)
+	{
 		this->ui->valueTableWidget->removeRow(this->ui->valueTableWidget->rowCount() -1);
+	}
 
 	QSignalMapper* signalMapper = new QSignalMapper(this);
 
@@ -191,6 +135,8 @@ void MainWindow::LoadProject(const QString& path)
 	this->ui->renameKeyButton->setEnabled(true);
 	this->ui->deleteKeyButton->setEnabled(true);
 	this->ui->searchKeyLineEdit->setEnabled(true);
+
+	return true;
 }
 
 MainWindow::~MainWindow()

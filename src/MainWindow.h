@@ -3,10 +3,10 @@
 
 #include "ProjectHelper.h"
 
-#include <QMainWindow>
-#include <QTableWidgetItem>
-#include <QListWidgetItem>
 #include <QMap>
+#include <QMainWindow>
+#include <QListWidgetItem>
+#include <QTableWidgetItem>
 
 #ifdef USE_WEBENGINE
 #include <QtWebEngine>
@@ -15,7 +15,7 @@
 
 namespace Ui
 {
-class MainWindow;
+	class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -26,7 +26,7 @@ public:
 	explicit MainWindow(QWidget *parent = 0);
 	virtual ~MainWindow();
 
-	void LoadProject(const QString& path);
+	bool LoadProject(const QString& path);
 
 	void RefreshWebView();
 	void RefreshButtonStatus(int index);
