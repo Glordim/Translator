@@ -374,6 +374,9 @@ void MainWindow::on_keyListWidget_itemChanged(QListWidgetItem *item)
 
 		this->project.RenameKey(oldKey, newKey);
 
+		this->ui->keyListWidget->sortItems();
+		this->ui->keyListWidget->scrollToItem(item);
+
 		this->on_keyListWidget_itemSelectionChanged();
 	}
 }
@@ -458,8 +461,9 @@ void MainWindow::NewKey()
 	item->setFlags(item->flags() | Qt::ItemIsEditable);
 	item->setSelected(true);
 
-	this->ui->keyListWidget->editItem(item);
+	this->ui->keyListWidget->sortItems();
 	this->ui->keyListWidget->scrollToItem(item);
+	this->ui->keyListWidget->editItem(item);
 }
 
 void MainWindow::RenameKey()
