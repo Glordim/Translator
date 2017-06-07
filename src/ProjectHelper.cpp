@@ -106,9 +106,9 @@ bool ProjectHelper::Load(const QString& path)
 
 	QFileInfo fileInfo(file);
 
-	QDomDocument* dom = new QDomDocument(file.fileName());
+	QDomDocument dom(file.fileName());
 
-	if (dom->setContent(&file) == false)
+	if (dom.setContent(&file) == false)
 	{
 		file.close();
 		return false;
@@ -122,7 +122,7 @@ bool ProjectHelper::Load(const QString& path)
 
 	QStringList supportedLang;
 
-	QDomElement docElem = dom->documentElement();
+	QDomElement docElem = dom.documentElement();
 	QDomNode node = docElem.firstChild();
 
 	while (node.isNull() == false)
@@ -160,13 +160,13 @@ bool ProjectHelper::Load(const QString& path)
 
 	QFile configFile(configDir.absolutePath() + "/" + "preference.cfg");
 
-	dom = new QDomDocument();
-	QDomElement dom_element = dom->createElement("config");
+	dom.clear();
+	QDomElement dom_element = dom.createElement("config");
 
-	QDomElement lang_element = dom->createElement("Line");
+	QDomElement lang_element = dom.createElement("Line");
 	lang_element.setAttribute("LastProject", path);
 	dom_element.appendChild(lang_element);
-	dom->appendChild(dom_element);
+	dom.appendChild(dom_element);
 
 	if (configFile.open(QIODevice::WriteOnly) == false)
 	{
@@ -175,7 +175,7 @@ bool ProjectHelper::Load(const QString& path)
 	}
 
 	QTextStream stream(&configFile);
-	stream << dom->toString();
+	stream << dom.toString();
 	configFile.close();
 
 	this->isOpen = true;
@@ -195,9 +195,9 @@ bool ProjectHelper::LoadLang(const QString& path)
 
 	QFileInfo fileInfo(file);
 
-	QDomDocument* dom = new QDomDocument(file.fileName());
+	QDomDocument dom(file.fileName());
 
-	if (dom->setContent(&file) == false)
+	if (dom.setContent(&file) == false)
 	{
 		file.close();
 		return false;
@@ -205,7 +205,7 @@ bool ProjectHelper::LoadLang(const QString& path)
 
 	file.close();
 
-	QDomElement docElem = dom->documentElement();
+	QDomElement docElem = dom.documentElement();
 
 	QString lang = fileInfo.baseName();
 
@@ -258,12 +258,12 @@ bool ProjectHelper::Save()
 
 bool ProjectHelper::SaveLang(const QString& lang)
 {
-	QDomDocument* dom = new QDomDocument();
+	QDomDocument dom;
 /*
 	QDomProcessingInstruction xmlProcessingInstruction = dom->createProcessingInstruction("xml", "version=\"1.0\"");
 	dom->appendChild(xmlProcessingInstruction);
 */
-	QDomElement dom_element = dom->createElement(lang);
+	QDomElement dom_element = dom.createElement(lang);
 	//dom_element.setAttribute("Name", projectName);
 
 	bool warning = false;
@@ -278,7 +278,7 @@ bool ProjectHelper::SaveLang(const QString& lang)
 		QString currentKey = keyList[i];
 		const KeyValue& keyVal = keyValueMap[currentKey];
 
-		QDomElement lang_element = dom->createElement("Loca");
+		QDomElement lang_element = dom.createElement("Loca");
 		lang_element.setAttribute("Key", currentKey);
 		lang_element.setAttribute("Value", keyVal.value);
 		lang_element.setAttribute("Status", (int)(keyVal.status));
@@ -290,7 +290,7 @@ bool ProjectHelper::SaveLang(const QString& lang)
 		dom_element.appendChild(lang_element);
 	}
 
-	dom->appendChild(dom_element);
+	dom.appendChild(dom_element);
 
 	QString filePath = this->dirPath + "/" + lang + ".lang";
 	QFile file(filePath);
@@ -301,7 +301,7 @@ bool ProjectHelper::SaveLang(const QString& lang)
 	}
 
 	QTextStream stream(&file);
-	stream << dom->toString();
+	stream << dom.toString();
 	file.close();
 
 	if (warning == true)

@@ -38,9 +38,9 @@ Preference GetPreference()
 		return preference;
 	}
 
-	QDomDocument* dom = new QDomDocument(configFile.fileName());
+	QDomDocument dom(configFile.fileName());
 
-	if (dom->setContent(&configFile) == false)
+	if (dom.setContent(&configFile) == false)
 	{
 		configFile.close();
 		return preference;
@@ -48,7 +48,7 @@ Preference GetPreference()
 
 	configFile.close();
 
-	QDomElement docElem = dom->documentElement();
+	QDomElement docElem = dom.documentElement();
 	QDomNode node = docElem.firstChild();
 
 	while (node.isNull() == false)

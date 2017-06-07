@@ -18,9 +18,9 @@ bool LangHelper::Load(const QString& path)
 		return false;
 	}
 
-	QDomDocument* dom = new QDomDocument();
+	QDomDocument dom;
 
-	if (dom->setContent(&file) == false)
+	if (dom.setContent(&file) == false)
 	{
 		file.close();
 		return false;
@@ -30,7 +30,7 @@ bool LangHelper::Load(const QString& path)
 
 	this->langMap.clear();
 
-	QDomElement docElem = dom->documentElement();
+	QDomElement docElem = dom.documentElement();
 
 	QDomNode node = docElem.firstChild();
 

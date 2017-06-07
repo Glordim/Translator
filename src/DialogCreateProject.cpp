@@ -182,14 +182,14 @@ void DialogCreateProject::done(int r)
 			}
 		}
 
-		QDomDocument* dom = new QDomDocument(projectName + ".trans");
-		QDomElement dom_element = dom->createElement("Project");
+		QDomDocument dom;
+		QDomElement dom_element = dom.createElement("Project");
 		dom_element.setAttribute("Name", projectName);
 
 		supportedCount = supportedLang.count();
 		for (int i = 0; i < supportedCount; ++i)
 		{
-			QDomElement lang_element = dom->createElement("Lang");
+			QDomElement lang_element = dom.createElement("Lang");
 			lang_element.setAttribute("Name", supportedLang[i]);
 
 			if (supportedLang[i] == defaultLang)
@@ -198,7 +198,7 @@ void DialogCreateProject::done(int r)
 			dom_element.appendChild(lang_element);
 		}
 
-		dom->appendChild(dom_element);
+		dom.appendChild(dom_element);
 
 		QString filePath = dir.absolutePath() + "/" + projectName + ".trans";
 		QFile file(filePath);
@@ -209,7 +209,7 @@ void DialogCreateProject::done(int r)
 		}
 
 		QTextStream stream(&file);
-		stream << dom->toString();
+		stream << dom.toString();
 		file.close();
 
 		QObject* obj = this;
