@@ -67,6 +67,8 @@ public:
 	bool    Save();
 	bool    SaveLang(const QString& key);
 
+	bool	SetDefaultProjectInConfigFile(const QString& path);
+
 private:
 
 	bool    isOpen;

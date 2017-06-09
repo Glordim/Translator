@@ -4,11 +4,11 @@
 #include "DialogCreateProject.h"
 #include "ui_DialogCreateProject.h"
 
-#include <QtXml>
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QErrorMessage>
+#include <QXmlStreamWriter>
 
 DialogCreateProject::DialogCreateProject(QWidget *parent, ProjectHelper& project) :
 	QDialog(parent),
@@ -194,24 +194,6 @@ void DialogCreateProject::done(int r)
 			}
 		}
 
-		QDomDocument dom;
-		QDomElement dom_element = dom.createElement("Project");
-		dom_element.setAttribute("Name", projectName);
-
-		supportedCount = supportedLangValueList.count();
-		for (int i = 0; i < supportedCount; ++i)
-		{
-			QDomElement lang_element = dom.createElement("Lang");
-			lang_element.setAttribute("Name", supportedLangValueList[i]);
-
-			if (supportedLangValueList[i] == defaultLang)
-				lang_element.setAttribute("IsDefault", "True");
-
-			dom_element.appendChild(lang_element);
-		}
-
-		dom.appendChild(dom_element);
-
 		QString filePath = dir.absolutePath() + "/" + projectName + ".trans";
 		QFile file(filePath);
 		if (file.open(QIODevice::WriteOnly) == false)
@@ -220,9 +202,30 @@ void DialogCreateProject::done(int r)
 			return;
 		}
 
-		QTextStream stream(&file);
-		stream << dom.toString();
+		QXmlStreamWriter stream(&file);
+		stream.setAutoFormatting(true);
+		//stream.writeStartDocument();
+		stream.writeStartElement("Project");
+		stream.writeAttribute("Name", projectName);
+		supportedCount = supportedLangValueList.count();
+		for (int i = 0; i < supportedCount; ++i)
+		{
+			stream.writeStartElement("Lang");
+			stream.writeAttribute("Name", supportedLangValueList[i]);
+
+			if (supportedLangValueList[i] == defaultLang)
+				stream.writeAttribute("IsDefault", "True");
+
+			stream.writeEndElement();
+		}
+		stream.writeEndElement();
+		stream.writeEndDocument();
 		file.close();
+
+		for (int i = 0; i < supportedCount; ++i)
+		{
+			this->project.SaveLang(supportedLangValueList[i]);
+		}
 
 		QObject* obj = this;
 

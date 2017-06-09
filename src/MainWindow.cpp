@@ -122,10 +122,14 @@ bool MainWindow::LoadProject(const QString& path)
 	this->ui->valueTableWidget->setVerticalHeaderLabels(langDisplayNameList);
 	this->ui->valueTableWidget->verticalHeader()->setDefaultSectionSize(60);
 	this->ui->valueTableWidget->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
-	QTableWidgetItem* defaultLangRow = this->ui->valueTableWidget->verticalHeaderItem(langList.indexOf(this->defaultLang));
-	QFont font = defaultLangRow->font();
-	font.setBold(true);
-	defaultLangRow->setFont(font);
+
+	if (langList.count() != 0)
+	{
+		QTableWidgetItem* defaultLangRow = this->ui->valueTableWidget->verticalHeaderItem(langList.indexOf(this->defaultLang));
+		QFont font = defaultLangRow->font();
+		font.setBold(true);
+		defaultLangRow->setFont(font);
+	}
 
 	this->ui->keyListWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 

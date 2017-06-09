@@ -1,8 +1,8 @@
 #include "LangHelper.h"
 
 #include <QFile>
-#include <QtXml>
 #include <QMessageBox>
+#include <QXmlStreamReader>
 
 LangHelper::LangHelper(void)
 {
@@ -18,39 +18,47 @@ bool LangHelper::Load(const QString& path)
 		return false;
 	}
 
-	QDomDocument dom;
+	this->langMap.clear();
 
-	if (dom.setContent(&file) == false)
+	QXmlStreamReader xml(&file);
+
+	while (xml.atEnd() == false)
 	{
-		file.close();
-		return false;
+		xml.readNext();
+
+		if (xml.isStartElement() == true)
+		{
+			if (xml.name() == "LangInfo")
+			{
+				QXmlStreamAttributes attributesVec = xml.attributes();
+
+				LangInfo lang;
+
+				for (int i = 0; i < attributesVec.count(); ++i)
+				{
+					QXmlStreamAttribute attribute = attributesVec[i];
+					QString attributeName = attribute.name().toString();
+
+					if (attributeName == "Display")
+					{
+						lang.displayName = attribute.value().toString();
+					}
+					else if (attributeName == "Saved")
+					{
+						lang.savedName = attribute.value().toString();
+					}
+					else if (attributeName == "GoogleTraduc")
+					{
+						lang.googleTraducName = attribute.value().toString();
+					}
+				}
+
+				this->langMap[lang.savedName] = lang;
+			}
+		}
 	}
 
 	file.close();
-
-	this->langMap.clear();
-
-	QDomElement docElem = dom.documentElement();
-
-	QDomNode node = docElem.firstChild();
-
-	while (node.isNull() == false)
-	{
-		QDomElement element = node.toElement();
-
-		if (element.tagName() == "LangInfo")
-		{
-			LangInfo lang;
-
-			lang.displayName = element.attribute("Display");
-			lang.savedName = element.attribute("Saved");
-			lang.googleTraducName = element.attribute("GoogleTraduc");
-
-			this->langMap[lang.savedName] = lang;
-		}
-
-		node = node.nextSibling();
-	}
 
 	return true;
 }

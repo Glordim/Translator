@@ -1,11 +1,13 @@
 #include "ProjectHelper.h"
 
 #include <QFile>
-#include <QtXml>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QErrorMessage>
+#include <QStandardPaths>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 
 ProjectHelper::ProjectHelper(QWidget* mainWindow) :
 	mainWindow(mainWindow)
@@ -99,22 +101,11 @@ bool ProjectHelper::Load(const QString& path)
 	QFile file(path);
 	if (file.open(QIODevice::ReadOnly) == false)
 	{
-		file.close();
 		QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'ouvrir le projet");
 		return false;
 	}
 
 	QFileInfo fileInfo(file);
-
-	QDomDocument dom(file.fileName());
-
-	if (dom.setContent(&file) == false)
-	{
-		file.close();
-		return false;
-	}
-
-	file.close();
 
 	this->dirPath = fileInfo.absolutePath();
 	this->projectName = fileInfo.baseName();
@@ -122,63 +113,81 @@ bool ProjectHelper::Load(const QString& path)
 
 	QStringList supportedLang;
 
-	QDomElement docElem = dom.documentElement();
-	QDomNode node = docElem.firstChild();
+	QXmlStreamReader xml(&file);
 
-	while (node.isNull() == false)
+	while (xml.atEnd() == false)
 	{
-		QDomElement element = node.toElement();
+		xml.readNext();
 
-		if (element.tagName() == "Lang")
+		if (xml.isStartElement() == true)
 		{
-			QString lang = element.attribute("Name");
-			QString isDefault = element.attribute("IsDefault");
+			if (xml.name() == "Lang")
+			{
+				QXmlStreamAttributes attributesVec = xml.attributes();
 
-			if (isDefault == "True")
-				this->defaultLang = lang;
+				QString lang;
 
-			supportedLang.push_back(lang);
-			this->allData[lang].clear();
-			this->LoadLang(fileInfo.absolutePath() + "/" + lang + ".lang");
+				for (int i = 0; i < attributesVec.count(); ++i)
+				{
+					QXmlStreamAttribute attribute = attributesVec[i];
+					QString attributeName = attribute.name().toString();
+
+					if (attributeName == "Name")
+					{
+						lang = attribute.value().toString();
+					}
+					else if (attributeName == "IsDefault")
+					{
+						if (attribute.value().toString() == "True")
+							this->defaultLang = lang;
+					}
+				}
+
+				supportedLang.push_back(lang);
+				this->allData[lang].clear();
+				this->LoadLang(fileInfo.absolutePath() + "/" + lang + ".lang");
+			}
 		}
+	}
+	if (xml.hasError() == true)
+	{
 
-		node = node.nextSibling();
 	}
 
+	this->isOpen = true;
+
+	this->SetDefaultProjectInConfigFile(path);
+
+	return true;
+}
+
+bool ProjectHelper::SetDefaultProjectInConfigFile(const QString& path)
+{
 	QString configLocation = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
 
 	if (configLocation.isEmpty() == true)
-		return true;
+		return false;
 
 	QDir configDir(configLocation);
 
 	if (configDir.exists() == false)
 	{
 		if (configDir.mkpath(".") == false)
-			return true;
+			return false;
 	}
 
-	QFile configFile(configDir.absolutePath() + "/" + "preference.cfg");
+	QFile file(configDir.absolutePath() + "/" + "preference.cfg");
 
-	dom.clear();
-	QDomElement dom_element = dom.createElement("config");
-
-	QDomElement lang_element = dom.createElement("Line");
-	lang_element.setAttribute("LastProject", path);
-	dom_element.appendChild(lang_element);
-	dom.appendChild(dom_element);
-
-	if (configFile.open(QIODevice::WriteOnly) == false)
-	{
-		QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'écrire dans le document XML");
-		return true;
-	}
-
-	QTextStream stream(&configFile);
-	stream << dom.toString();
-	configFile.close();
-
-	this->isOpen = true;
+	QXmlStreamWriter stream(&file);
+	stream.setAutoFormatting(true);
+	//stream.writeStartDocument();
+	stream.writeStartElement("Config");
+	stream.writeStartElement("Loca");
+	stream.writeAttribute("LastProject", path);
+	stream.writeEndElement();
+	stream.writeEndElement();
+	stream.writeEndDocument();
+	file.close();
 
 	return true;
 }
@@ -189,44 +198,55 @@ bool ProjectHelper::LoadLang(const QString& path)
 	if (file.open(QIODevice::ReadOnly) == false)
 	{
 		file.close();
-		//QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'ouvrir en lecture le fichier de lang");
+		QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'ouvrir en lecture le fichier de lang");
 		return false;
 	}
 
 	QFileInfo fileInfo(file);
+	QString lang = fileInfo.baseName();
 
-	QDomDocument dom(file.fileName());
+	QXmlStreamReader xml(&file);
 
-	if (dom.setContent(&file) == false)
+	while (xml.atEnd() == false)
 	{
-		file.close();
-		return false;
+		xml.readNext();
+
+		if (xml.isStartElement() == true)
+		{
+			if (xml.name() == "Loca")
+			{
+				QXmlStreamAttributes attributesVec = xml.attributes();
+
+				QString key;
+				QString value;
+				KeyStatus status;
+
+				for (int i = 0; i < attributesVec.count(); ++i)
+				{
+					QXmlStreamAttribute attribute = attributesVec[i];
+					QString attributeName = attribute.name().toString();
+
+					if (attributeName == "Key")
+					{
+						key = attribute.value().toString();
+					}
+					else if (attributeName == "Value")
+					{
+						value = attribute.value().toString();
+					}
+					else if (attributeName == "Status")
+					{
+						status = (KeyStatus)attribute.value().toInt();
+					}
+				}
+
+				this->allData[lang][key].value = value;
+				this->allData[lang][key].status = status;
+			}
+		}
 	}
 
 	file.close();
-
-	QDomElement docElem = dom.documentElement();
-
-	QString lang = fileInfo.baseName();
-
-	QDomNode node = docElem.firstChild();
-
-	while (node.isNull() == false)
-	{
-		QDomElement element = node.toElement();
-
-		if (element.tagName() == "Loca")
-		{
-			QString key = element.attribute("Key");
-			QString value = element.attribute("Value");
-			KeyStatus status = (KeyStatus)element.attribute("Status").toInt();
-
-			this->allData[lang][key].value = value;
-			this->allData[lang][key].status = status;
-		}
-
-		node = node.nextSibling();
-	}
 
 	return true;
 }
@@ -258,16 +278,21 @@ bool ProjectHelper::Save()
 
 bool ProjectHelper::SaveLang(const QString& lang)
 {
-	QDomDocument dom;
-/*
-	QDomProcessingInstruction xmlProcessingInstruction = dom->createProcessingInstruction("xml", "version=\"1.0\"");
-	dom->appendChild(xmlProcessingInstruction);
-*/
-	QDomElement dom_element = dom.createElement(lang);
-	//dom_element.setAttribute("Name", projectName);
+	QString filePath = this->dirPath + "/" + lang + ".lang";
+	QFile file(filePath);
+	if (file.open(QIODevice::WriteOnly) == false)
+	{
+		QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'écrire dans le document XML");
+		return false;
+	}
 
 	bool warning = false;
 	QString keyEmpty;
+
+	QXmlStreamWriter stream(&file);
+	stream.setAutoFormatting(true);
+	//stream.writeStartDocument();
+	stream.writeStartElement(lang);
 
 	QMap<QString, KeyValue> keyValueMap = this->allData[lang];
 	QList<QString> keyList = keyValueMap.keys();
@@ -278,34 +303,27 @@ bool ProjectHelper::SaveLang(const QString& lang)
 		QString currentKey = keyList[i];
 		const KeyValue& keyVal = keyValueMap[currentKey];
 
-		QDomElement lang_element = dom.createElement("Loca");
-		lang_element.setAttribute("Key", currentKey);
-		lang_element.setAttribute("Value", keyVal.value);
-		lang_element.setAttribute("Status", (int)(keyVal.status));
+		stream.writeStartElement("Loca");
+		stream.writeAttribute("Key", currentKey);
+		stream.writeAttribute("Value", keyVal.value);
+		stream.writeAttribute("Status", QString::number((int)(keyVal.status)));
+		stream.writeEndElement();
+
 		if (lang == this->defaultLang && keyVal.value == "")
 		{
 			warning = true;
 			keyEmpty = currentKey;
 		}
-		dom_element.appendChild(lang_element);
 	}
 
-	dom.appendChild(dom_element);
-
-	QString filePath = this->dirPath + "/" + lang + ".lang";
-	QFile file(filePath);
-	if (file.open(QIODevice::WriteOnly) == false)
-	{
-		QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'écrire dans le document XML");
-		return false;
-	}
-
-	QTextStream stream(&file);
-	stream << dom.toString();
+	stream.writeEndElement();
+	stream.writeEndDocument();
 	file.close();
 
 	if (warning == true)
+	{
 		QMessageBox::warning(this->mainWindow, "Warning", "La langue par default contient des champs vide !\n(Key = " + keyEmpty + " )");
+	}
 
 	return true;
 }

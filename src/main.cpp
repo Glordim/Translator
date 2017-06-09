@@ -1,8 +1,10 @@
-#include <QtXml>
+#include <QDir>
 #include <QFileInfo>
 #include <QTextCodec>
 #include <QMessageBox>
 #include <QApplication>
+#include <QStandardPaths>
+#include <QXmlStreamReader>
 #include <QCommandLineParser>
 
 #include "Singleton.h"
@@ -30,39 +32,41 @@ Preference GetPreference()
 		return preference;
 	}
 
-	QFile configFile(configDir.absolutePath() + "/" + "preference.cfg");
+	QFile file(configDir.absolutePath() + "/" + "preference.cfg");
 
-	if (configFile.open(QIODevice::ReadOnly) == false)
+	if (file.open(QIODevice::ReadOnly) == false)
 	{
 		QMessageBox::critical(NULL, "Erreur", "Impossible d'ouvrir en lecture le projet");
 		return preference;
 	}
 
-	QDomDocument dom(configFile.fileName());
+	QXmlStreamReader xml(&file);
 
-	if (dom.setContent(&configFile) == false)
+	while (xml.atEnd() == false)
 	{
-		configFile.close();
-		return preference;
-	}
+		xml.readNext();
 
-	configFile.close();
-
-	QDomElement docElem = dom.documentElement();
-	QDomNode node = docElem.firstChild();
-
-	while (node.isNull() == false)
-	{
-		QDomElement element = node.toElement();
-
-		if (element.tagName() == "Line")
+		if (xml.isStartElement() == true)
 		{
-			if (element.hasAttribute("LastProject") == true)
-				preference.lastProjectPath = element.attribute("LastProject");
-		}
+			if (xml.name() == "Line")
+			{
+				QXmlStreamAttributes attributesVec = xml.attributes();
 
-		node = node.nextSibling();
+				for (int i = 0; i < attributesVec.count(); ++i)
+				{
+					QXmlStreamAttribute attribute = attributesVec[i];
+					QString attributeName = attribute.name().toString();
+
+					if (attributeName == "LastProject")
+					{
+						preference.lastProjectPath = attribute.value().toString();
+					}
+				}
+			}
+		}
 	}
+
+	file.close();
 
 	return preference;
 }
