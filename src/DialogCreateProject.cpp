@@ -21,14 +21,14 @@ DialogCreateProject::DialogCreateProject(QWidget *parent, ProjectHelper& project
 
 	QList<QString> list = langHelper.GetKeyList();
 
-	ui->defaultLangComboBox->addItems(list);
-
-	ui->availableListWidget->addItems(list);
-	ui->supportedListWidget->addItems(list);
-
-	int supportedCount = ui->supportedListWidget->count();
-	for (int i = 0; i < supportedCount; ++i)
+	int langCount = list.count();
+	for (int i = 0; i < langCount; ++i)
 	{
+		QString displayName = langHelper.GetLangInfo(list[i]).displayName;
+
+		ui->defaultLangComboBox->addItem(displayName);
+		ui->availableListWidget->addItem(displayName);
+		ui->supportedListWidget->addItem(displayName);
 		ui->supportedListWidget->item(i)->setHidden(true);
 	}
 
@@ -45,14 +45,23 @@ DialogCreateProject::DialogCreateProject(QWidget *parent, ProjectHelper& project
 
 		ui->defaultLangComboBox->setCurrentIndex(list.indexOf(this->project.GetDefaultLang()));
 
-		QList<QString> langList = this->project.GetLangList();
+		QList<QString> projectLangList = this->project.GetLangList();
 
-		int langCount = langList.count();
+		langCount = projectLangList.count();
 		for (int i = 0; i < langCount; ++i)
 		{
-			QListWidgetItem* item = this->ui->availableListWidget->item(list.indexOf(langList[i]));
+			int index = list.indexOf(projectLangList[i]);
 
-			this->MoveToSupported(item);
+			if (index != -1)
+			{
+				QListWidgetItem* item = this->ui->availableListWidget->item(index);
+
+				this->MoveToSupported(item);
+			}
+			else
+			{
+				QMessageBox::critical(0, "Error", projectLangList[i] + ": Not found in LangInfo.xml !");
+			}
 		}
 	}
 	else
@@ -61,7 +70,7 @@ DialogCreateProject::DialogCreateProject(QWidget *parent, ProjectHelper& project
 		ui->projectLocationLineEdit->setEnabled(true);
 		ui->projectLocationFindButton->setEnabled(true);
 
-		ui->defaultLangComboBox->setCurrentIndex(list.indexOf("English"));
+		ui->defaultLangComboBox->setCurrentIndex(list.indexOf("english"));
 	}
 }
 
@@ -134,21 +143,32 @@ void DialogCreateProject::done(int r)
 			return ;
 		}
 
-		QString defaultLang = this->ui->defaultLangComboBox->currentText();
+		int defaultLangIndex = this->ui->defaultLangComboBox->currentIndex();
 
-		QStringList supportedLang;
+		QList<int> supportedLangIndexList;
 
 		int supportedCount = ui->supportedListWidget->count();
 		for (int i = 0; i < supportedCount; ++i)
 		{
 			if (ui->supportedListWidget->item(i)->isHidden() == false)
-				supportedLang.push_back(ui->supportedListWidget->item(i)->text());
+				supportedLangIndexList.push_back(i);
 		}
 
-		if (supportedLang.contains(defaultLang) == false)
+		if (supportedLangIndexList.contains(defaultLangIndex) == false)
 		{
 			QMessageBox::critical(0, "Error", "Default Lang is not in Supported Lang !");
 			return ;
+		}
+
+		LangHelper& langHelper = Singleton<LangHelper>::getInstance();
+
+		QList<QString> keylist = langHelper.GetKeyList();
+		QList<QString> supportedLangValueList;
+		QString defaultLang = keylist[defaultLangIndex];
+
+		for (int i = 0; i < supportedLangIndexList.count(); ++i)
+		{
+			supportedLangValueList.push_back(keylist[supportedLangIndexList[i]]);
 		}
 
 		if (this->project.IsOpen() == true)
@@ -159,9 +179,9 @@ void DialogCreateProject::done(int r)
 			int langCount = langList.count();
 			for (int i = 0; i < langCount; ++i)
 			{
-				if (supportedLang.contains(langList[i]) == false)
+				if (supportedLangValueList.contains(langList[i]) == false)
 				{
-					if (QMessageBox::question(this, "Warning", "Attention la langue " + langList[i] + " a ete retirer de la liste des langues supportees, toutes ses valeurs disparaitront.\n\nVoulez vous continuer ?", QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+					if (QMessageBox::question(this, "Warning", "Attention la langue \"" + Singleton<LangHelper>::getInstance().GetLangInfo(langList[i]).displayName + "\" a ete retirer de la liste des langues supportees, toutes ses valeurs disparaitront.\n\nVoulez vous continuer ?", QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
 						return;
 
 					deleteList.push_back(langList[i]);
@@ -173,26 +193,18 @@ void DialogCreateProject::done(int r)
 				QFile::remove(dir.absolutePath() + "/" + lang + ".lang");
 			}
 		}
-		else
-		{
-			if (dir.mkdir(projectName) == false)
-			{
-				QMessageBox::critical(0, "Error", "Create Project Dir Failed !");
-				return ;
-			}
-		}
 
 		QDomDocument dom;
 		QDomElement dom_element = dom.createElement("Project");
 		dom_element.setAttribute("Name", projectName);
 
-		supportedCount = supportedLang.count();
+		supportedCount = supportedLangValueList.count();
 		for (int i = 0; i < supportedCount; ++i)
 		{
 			QDomElement lang_element = dom.createElement("Lang");
-			lang_element.setAttribute("Name", supportedLang[i]);
+			lang_element.setAttribute("Name", supportedLangValueList[i]);
 
-			if (supportedLang[i] == defaultLang)
+			if (supportedLangValueList[i] == defaultLang)
 				lang_element.setAttribute("IsDefault", "True");
 
 			dom_element.appendChild(lang_element);

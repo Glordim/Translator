@@ -46,7 +46,7 @@ bool LangHelper::Load(const QString& path)
 			lang.savedName = element.attribute("Saved");
 			lang.googleTraducName = element.attribute("GoogleTraduc");
 
-			this->langMap[lang.displayName] = lang;
+			this->langMap[lang.savedName] = lang;
 		}
 
 		node = node.nextSibling();

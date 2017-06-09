@@ -49,8 +49,8 @@ bool MainWindow::LoadProject(const QString& path)
 	this->ui->keyListWidget->clear();
 
 	QList<QString> langList = this->project.GetLangList();
-	int langCount = langList.count();
 
+	int langCount = langList.count();
 	for (int i = 0; i < langCount; ++i)
 	{
 		QList<QString> keyList = this->project.GetKeyList(langList[i]);
@@ -110,7 +110,16 @@ bool MainWindow::LoadProject(const QString& path)
 	//this->ui->valueTableWidget->horizontalHeader()->show();
 	this->ui->valueTableWidget->horizontalHeader()->hide();
 	this->ui->valueTableWidget->verticalHeader()->show();
-	this->ui->valueTableWidget->setVerticalHeaderLabels(langList);
+
+	QList<QString> langDisplayNameList;
+	LangHelper& langHelper = Singleton<LangHelper>::getInstance();
+
+	for (int i = 0; i < langList.count(); ++i)
+	{
+		langDisplayNameList.push_back(langHelper.GetLangInfo(langList[i]).displayName);
+	}
+
+	this->ui->valueTableWidget->setVerticalHeaderLabels(langDisplayNameList);
 	this->ui->valueTableWidget->verticalHeader()->setDefaultSectionSize(60);
 	this->ui->valueTableWidget->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
 	QTableWidgetItem* defaultLangRow = this->ui->valueTableWidget->verticalHeaderItem(langList.indexOf(this->defaultLang));
@@ -267,7 +276,7 @@ void MainWindow::on_keyListWidget_itemSelectionChanged()
 	int langCount = langList.count();
 	for (int i = 0; i < langCount; ++i)
 	{
-		QString text = this->project.GetValue(this->ui->valueTableWidget->verticalHeaderItem(i)->text(), this->selectedKeyItem->text());
+		QString text = this->project.GetValue(langList[i], this->selectedKeyItem->text());
 		QTableWidgetItem* item = this->ui->valueTableWidget->item(i, 0);
 
 		if (item == NULL)
@@ -478,7 +487,7 @@ void MainWindow::RefreshWebView()
 	{
 		QTableWidgetItem* item = selectedList[0];
 
-		lang = this->ui->valueTableWidget->verticalHeaderItem(item->row())->text();
+		lang = this->project.GetLangList()[item->row()];
 	}
 
 	QString currentLangGoogleTraduc = Singleton<LangHelper>::getInstance().GetLangInfo(lang).googleTraducName;
@@ -507,7 +516,7 @@ void MainWindow::on_valueTableWidget_itemChanged(QTableWidgetItem *item)
 		return;
 	}
 
-	QString lang = this->ui->valueTableWidget->verticalHeaderItem(item->row())->text();
+	QString lang = this->project.GetLangList()[item->row()];
 	this->project.SetValue(lang, this->selectedKeyItem->text(), value);
 
 	if (value == "")
