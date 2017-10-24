@@ -4,9 +4,13 @@
 #include "ProjectHelper.h"
 
 #include <QMap>
+#include <QString>
+#include <QUndoView>
 #include <QMainWindow>
+#include <QUndoCommand>
 #include <QListWidgetItem>
 #include <QTableWidgetItem>
+
 
 #ifdef USE_WEBENGINE
 #include <QtWebEngine>
@@ -26,11 +30,22 @@ public:
 	explicit MainWindow(QWidget *parent = 0);
 	virtual ~MainWindow();
 
+	ProjectHelper& GetProject();
+
 	bool LoadProject(const QString& path);
 
 	void RefreshWebView();
 	void RefreshButtonStatus(int index);
 	void RefreshListKeyStatus(QListWidgetItem* item);
+
+	void PrintStatusMessage(const QString& message);
+	void PrintStatusError(const QString& message);
+
+	QListWidgetItem* AddNewKey(const QString& keyName);
+	bool CheckIfItemIsPresentInKeyList(QListWidgetItem* item);
+	QListWidgetItem* GetItemInKeyList(const QString& keyName);
+	void RemoveKey(QListWidgetItem* item);
+	void ApplyRenameKey(QListWidgetItem* item, const QString& newName);
 
 private slots:
 	void OnClickButtonStatus(int index);
@@ -79,6 +94,12 @@ private:
 	QListWidgetItem* selectedKeyItem;
 
 	ProjectHelper project;
+
+	QUndoStack* undoStack;
+	QUndoView* undoView;
+
+	QAction* undoAction;
+	QAction* redoAction;
 };
 
 #endif // MAINWINDOW_H

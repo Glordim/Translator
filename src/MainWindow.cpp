@@ -4,6 +4,9 @@
 #include "ui_MainWindow.h"
 #include "DialogCreateProject.h"
 
+#include "AddCommand.h"
+#include "RenameCommand.h"
+
 #include <iostream>
 #include <QShortcut>
 #include <QTextEdit>
@@ -21,6 +24,23 @@ MainWindow::MainWindow(QWidget *parent) :
 	project(this)
 {
 	this->ui->setupUi(this);
+
+	this->undoStack = new QUndoStack(this);
+	this->undoView = new QUndoView(this->undoStack);
+	this->undoView->setWindowTitle(tr("Command List"));
+	this->undoView->show();
+	this->undoView->setAttribute(Qt::WA_QuitOnClose, false);
+
+	this->undoAction = this->undoStack->createUndoAction(this, tr("&Undo"));
+	this->undoAction->setShortcuts(QKeySequence::Undo);
+
+	this->redoAction = this->undoStack->createRedoAction(this, tr("&Redo"));
+	this->redoAction->setShortcuts(QKeySequence::Redo);
+
+	QMenu* menuEdit = ui->menuBar->findChild<QMenu*>("menuEdit");
+
+	menuEdit->addAction(undoAction);
+	menuEdit->addAction(redoAction);
 
 #ifdef USE_WEBENGINE
 	this->webengine = new QWebEngineView(this->ui->valueAndWebEngineSplitter);
@@ -155,6 +175,11 @@ bool MainWindow::LoadProject(const QString& path)
 MainWindow::~MainWindow()
 {
 	delete ui;
+}
+
+ProjectHelper& MainWindow::GetProject()
+{
+	return this->project;
 }
 
 void MainWindow::OnClickButtonStatus(int index)
@@ -310,27 +335,14 @@ void MainWindow::on_keyListWidget_itemChanged(QListWidgetItem *item)
 
 	if (this->project.ContainsKey(newKey) == true)
 	{
-		QPalette pal = this->ui->statusBar->palette();
-		pal.setColor(QPalette::WindowText, Qt::red);
-		this->ui->statusBar->setPalette(pal);
-		this->ui->statusBar->showMessage("Rename Fail : The key '" + newKey + "' already exist !");
+		this->PrintStatusError("Rename Fail : The key '" + newKey + "' already exist !");
+
 		item->setText(oldKey);
 	}
 	else
 	{
-		QPalette pal = this->ui->statusBar->palette();
-		pal.setColor(QPalette::WindowText, Qt::black);
-		this->ui->statusBar->setPalette(pal);
-		this->ui->statusBar->showMessage("Rename '" + oldKey + "' to '" + newKey + "'");
-
-		item->setData(Qt::UserRole, newKey);
-
-		this->project.RenameKey(oldKey, newKey);
-
-		this->ui->keyListWidget->sortItems();
-		this->ui->keyListWidget->scrollToItem(item);
-
-		this->on_keyListWidget_itemSelectionChanged();
+		QUndoCommand* renameCommand = new RenameCommand(this, item, oldKey, newKey);
+		this->undoStack->push(renameCommand);
 	}
 }
 
@@ -388,35 +400,62 @@ void MainWindow::NewKey()
 
 	this->ui->keyListWidget->clearSelection();
 
-	QString newKey = "New_Key";
+	QUndoCommand* addCommand = new AddCommand(this);
+	this->undoStack->push(addCommand);
+}
 
-	int num = 0;
-	QList<QString> defaultLangKeyList = this->project.GetKeyList(this->defaultLang);
-
-	while (defaultLangKeyList.contains(newKey) == true)
-	{
-		newKey = "New_Key_" + QString::number(num);
-		num++;
-	}
-
-	QList<QString> langList = this->project.GetLangList();
-
-	for (int i = 0; i < langList.count(); ++i)
-	{
-		this->project.SetValue(langList[i], newKey, "");
-	}
-
+QListWidgetItem* MainWindow::AddNewKey(const QString& keyName)
+{
 	QIcon icon;
 	icon.addFile(":" + KeyValue::StatusToString(KeyStatus::Block));
 
-	QListWidgetItem* item = new QListWidgetItem(icon, newKey, this->ui->keyListWidget);
-	item->setData(Qt::UserRole, newKey);
+	QListWidgetItem* item = new QListWidgetItem(icon, keyName, this->ui->keyListWidget);
+	item->setData(Qt::UserRole, keyName);
 	item->setFlags(item->flags() | Qt::ItemIsEditable);
 	item->setSelected(true);
 
 	this->ui->keyListWidget->sortItems();
 	this->ui->keyListWidget->scrollToItem(item);
 	this->ui->keyListWidget->editItem(item);
+
+	return item;
+}
+
+bool MainWindow::CheckIfItemIsPresentInKeyList(QListWidgetItem* item)
+{
+	for (int i = 0; i < this->ui->keyListWidget->count(); ++i)
+	{
+		if (this->ui->keyListWidget->item(i) == item)
+			return true;
+	}
+	return false;
+}
+
+QListWidgetItem* MainWindow::GetItemInKeyList(const QString& keyName)
+{
+	for (int i = 0; i < this->ui->keyListWidget->count(); ++i)
+	{
+		QListWidgetItem* item = this->ui->keyListWidget->item(i);
+
+		if (item->text() == keyName)
+			return item;
+	}
+	return NULL;
+}
+
+void MainWindow::ApplyRenameKey(QListWidgetItem* item, const QString& newName)
+{
+	item->setData(Qt::UserRole, newName);
+	item->setText(newName);
+	// TOTO Cancel Edit mode
+
+	this->project.RenameKey(item->text(), newName);
+
+	//this->ui->keyListWidget->selec
+	this->ui->keyListWidget->sortItems();
+	this->ui->keyListWidget->scrollToItem(item);
+
+	this->on_keyListWidget_itemSelectionChanged();
 }
 
 void MainWindow::RenameKey()
@@ -441,35 +480,32 @@ void MainWindow::DeleteKey()
 	if (QMessageBox::warning(this, "Confirmation", text, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
 	{
 		QList<QListWidgetItem*> selectedKeys = this->ui->keyListWidget->selectedItems();
-		int lastRow = 0;
 
 		for (int i = 0; i < selectedKeys.count(); ++i)
 		{
-			QListWidgetItem* item = selectedKeys[i];
-
-			this->project.RemoveKey(item->text());
-
-			int row = this->ui->keyListWidget->row(item);
-			this->ui->keyListWidget->takeItem(row);
-
-			if (i == selectedKeys.count() - 1)
-			{
-				lastRow = row;
-			}
+			this->RemoveKey(selectedKeys[i]);
 		}
+	}
+}
 
-		if (this->ui->keyListWidget->count() != 0)
+void MainWindow::RemoveKey(QListWidgetItem* item)
+{
+	this->project.RemoveKey(item->text());
+
+	int row = this->ui->keyListWidget->row(item);
+	this->ui->keyListWidget->takeItem(row);
+
+	if (this->ui->keyListWidget->count() != 0)
+	{
+		if (row >= this->ui->keyListWidget->count())
+			row = this->ui->keyListWidget->count() - 1;
+
+		QListWidgetItem* item = this->ui->keyListWidget->item(row);
+
+		if (item != NULL)
 		{
-			if (lastRow >= this->ui->keyListWidget->count())
-				lastRow = this->ui->keyListWidget->count() - 1;
-
-			QListWidgetItem* item = this->ui->keyListWidget->item(lastRow);
-
-			if (item != NULL)
-			{
-				item->setSelected(true);
-				this->ui->keyListWidget->scrollToItem(item);
-			}
+			item->setSelected(true);
+			this->ui->keyListWidget->scrollToItem(item);
 		}
 	}
 }
@@ -596,4 +632,19 @@ void MainWindow::on_actionProjectSettings_triggered()
 {
 	DialogCreateProject* projectSettings = new DialogCreateProject(this, this->project);
 	projectSettings->show();
+}
+
+void MainWindow::PrintStatusMessage(const QString& message)
+{
+	ui->statusBar->showMessage(message);
+}
+
+void MainWindow::PrintStatusError(const QString& message)
+{
+	QPalette pal = ui->statusBar->palette();
+	pal.setColor(QPalette::WindowText, Qt::red);
+	ui->statusBar->setPalette(pal);
+	ui->statusBar->showMessage(message);
+	pal.setColor(QPalette::WindowText, Qt::black);
+	ui->statusBar->setPalette(pal);
 }

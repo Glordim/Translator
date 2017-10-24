@@ -13,7 +13,7 @@ TEMPLATE = app
 
 ### WebEngine ###
 
-#DEFINES += USE_WEBENGINE
+DEFINES += USE_WEBENGINE
 
 contains(DEFINES, USE_WEBENGINE) {
 
@@ -30,7 +30,9 @@ SOURCES += src/main.cpp \
 	   src/MainWindow.cpp \
 	   src/DialogCreateProject.cpp \
 	   src/ProjectHelper.cpp \
-	   src/LangHelper.cpp
+	   src/LangHelper.cpp \
+    src/AddCommand.cpp \
+    src/RenameCommand.cpp
 
 INCLUDEPATH += $$PWD/src
 
@@ -38,7 +40,9 @@ HEADERS += src/MainWindow.h \
 	   src/DialogCreateProject.h \
 	   src/ProjectHelper.h \
 	   src/LangHelper.h \
-	   src/Singleton.h
+	   src/Singleton.h \
+    src/AddCommand.h \
+    src/RenameCommand.h
 
 UI_DIR = $$PWD/src
 
