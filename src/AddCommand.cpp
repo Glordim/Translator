@@ -48,7 +48,7 @@ void AddCommand::redo()
 		this->message = "Add Key \"" + this->keyName + "\"";
 		this->setText(this->message);
 
-		this->item = this->mainwindow->AddNewKey(this->keyName);
+        this->item = this->mainwindow->AddNewKey(this->keyName, this->item == NULL);
 	}
 
 	this->mainwindow->PrintStatusMessage(this->message);

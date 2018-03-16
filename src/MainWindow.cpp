@@ -404,7 +404,7 @@ void MainWindow::NewKey()
 	this->undoStack->push(addCommand);
 }
 
-QListWidgetItem* MainWindow::AddNewKey(const QString& keyName)
+QListWidgetItem* MainWindow::AddNewKey(const QString& keyName, bool edit)
 {
 	QIcon icon;
 	icon.addFile(":" + KeyValue::StatusToString(KeyStatus::Block));
@@ -416,7 +416,9 @@ QListWidgetItem* MainWindow::AddNewKey(const QString& keyName)
 
 	this->ui->keyListWidget->sortItems();
 	this->ui->keyListWidget->scrollToItem(item);
-	this->ui->keyListWidget->editItem(item);
+
+    if (edit == true)
+        this->ui->keyListWidget->editItem(item);
 
 	return item;
 }

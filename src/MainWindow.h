@@ -41,7 +41,7 @@ public:
 	void PrintStatusMessage(const QString& message);
 	void PrintStatusError(const QString& message);
 
-	QListWidgetItem* AddNewKey(const QString& keyName);
+    QListWidgetItem* AddNewKey(const QString& keyName, bool edit);
 	bool CheckIfItemIsPresentInKeyList(QListWidgetItem* item);
 	QListWidgetItem* GetItemInKeyList(const QString& keyName);
 	void RemoveKey(QListWidgetItem* item);
