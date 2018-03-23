@@ -1,5 +1,6 @@
 #include "ProjectHelper.h"
 
+#include <QIODevice>
 #include <QFile>
 #include <QFileInfo>
 #include <QFileDialog>
@@ -8,6 +9,9 @@
 #include <QStandardPaths>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+
+#include "keyvalue.h"
+#include "keylistwidgetitem.h"
 
 ProjectHelper::ProjectHelper(QWidget* mainWindow) :
 	mainWindow(mainWindow)
@@ -37,63 +41,7 @@ QString ProjectHelper::GetDefaultLang() const
 
 QList<QString>  ProjectHelper::GetLangList() const
 {
-	return this->allData.keys();
-}
-
-QList<QString>  ProjectHelper::GetKeyList(const QString& langName) const
-{
-	return this->allData[langName].keys();
-}
-
-QString ProjectHelper::GetValue(const QString& langName, const QString& keyName) const
-{
-	return this->allData[langName][keyName].value;
-}
-
-void ProjectHelper::SetValue(const QString& langName, const QString& keyName, const QString& value)
-{
-	this->allData[langName][keyName].value = value;
-}
-
-enum KeyStatus ProjectHelper::GetStatus(const QString& langName, const QString& keyName) const
-{
-	return this->allData[langName][keyName].status;
-}
-
-void ProjectHelper::SetStatus(const QString& langName, const QString& keyName, enum KeyStatus status)
-{
-	this->allData[langName][keyName].status = status;
-}
-
-bool ProjectHelper::ContainsKey(const QString& keyName) const
-{
-	return this->allData[this->defaultLang].contains(keyName);
-}
-
-void ProjectHelper::RemoveKey(const QString& keyName)
-{
-	QList<QString> langList = this->allData.keys();
-
-	int langCount = langList.count();
-	for (int i = 0; i < langCount; ++i)
-	{
-		this->allData[langList[i]].remove(keyName);
-	}
-}
-
-void ProjectHelper::RenameKey(const QString& oldKeyName, const QString& newKeyName)
-{
-	QList<QString> langList = this->allData.keys();
-
-	int langCount = langList.count();
-	for (int i = 0; i < langCount; ++i)
-	{
-		QString lang = langList[i];
-
-		QString value = this->allData[lang][oldKeyName].value;
-		this->allData[lang].remove(oldKeyName);
-		this->allData[lang][newKeyName].value = value;
-	}
+    return this->langList;
 }
 
 bool ProjectHelper::Load(const QString& path)
@@ -105,13 +53,14 @@ bool ProjectHelper::Load(const QString& path)
 		return false;
 	}
 
+    this->langList.clear();
+
 	QFileInfo fileInfo(file);
 
 	this->dirPath = fileInfo.absolutePath();
-	this->projectName = fileInfo.baseName();
-	this->allData.clear();
+    this->projectName = fileInfo.baseName();
 
-	QStringList supportedLang;
+    //QStringList supportedLang;
 
 	QXmlStreamReader xml(&file);
 
@@ -143,9 +92,9 @@ bool ProjectHelper::Load(const QString& path)
 					}
 				}
 
-				supportedLang.push_back(lang);
-				this->allData[lang].clear();
-				this->LoadLang(fileInfo.absolutePath() + "/" + lang + ".lang");
+                //supportedLang.push_back(lang);
+                this->langList.push_back(lang);
+                //this->LoadLang(fileInfo.absolutePath() + "/" + lang + ".lang");
 			}
 		}
 	}
@@ -163,7 +112,7 @@ bool ProjectHelper::Load(const QString& path)
 
 bool ProjectHelper::SetDefaultProjectInConfigFile(const QString& path)
 {
-	QString configLocation = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QString configLocation = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
 
 	if (configLocation.isEmpty() == true)
 		return false;
@@ -176,34 +125,40 @@ bool ProjectHelper::SetDefaultProjectInConfigFile(const QString& path)
 			return false;
 	}
 
-	QFile file(configDir.absolutePath() + "/" + "preference.cfg");
+    QFile file(configDir.absolutePath() + "/" + "preference.cfg");
+
+    if (file.exists() == false)
+    {
+        if (file.open(QIODevice::WriteOnly) == false)
+            return false;
+    }
 
 	QXmlStreamWriter stream(&file);
 	stream.setAutoFormatting(true);
-	//stream.writeStartDocument();
-	stream.writeStartElement("Config");
-	stream.writeStartElement("Loca");
-	stream.writeAttribute("LastProject", path);
-	stream.writeEndElement();
+    //stream.writeStartDocument();
+    stream.writeStartElement("Pref");
+    stream.writeAttribute("LastProject", path);
 	stream.writeEndElement();
 	stream.writeEndDocument();
+    file.flush();
 	file.close();
 
 	return true;
 }
 
-bool ProjectHelper::LoadLang(const QString& path)
+QMap<QString, KeyValue> ProjectHelper::LoadLang(const QString& lang)
 {
+    QMap<QString, KeyValue> keyToKeyValueMap;
+
+    QString path = this->dirPath + "/" + lang + ".lang";
+
 	QFile file(path);
 	if (file.open(QIODevice::ReadOnly) == false)
 	{
 		file.close();
 		QMessageBox::critical(this->mainWindow, "Erreur", "Impossible d'ouvrir en lecture le fichier de lang");
-		return false;
+        return keyToKeyValueMap;
 	}
-
-	QFileInfo fileInfo(file);
-	QString lang = fileInfo.baseName();
 
 	QXmlStreamReader xml(&file);
 
@@ -240,15 +195,15 @@ bool ProjectHelper::LoadLang(const QString& path)
 					}
 				}
 
-				this->allData[lang][key].value = value;
-				this->allData[lang][key].status = status;
+                keyToKeyValueMap[key].SetValue(value);
+                keyToKeyValueMap[key].SetStatus(status);
 			}
 		}
 	}
 
 	file.close();
 
-	return true;
+    return keyToKeyValueMap;
 }
 
 bool ProjectHelper::IsOpen() const
@@ -262,21 +217,20 @@ void ProjectHelper::Close()
 
 	this->projectName = "";
 	this->dirPath = "";
-	this->defaultLang = "";
-	this->allData.clear();
+    this->defaultLang = "";
 }
 
-bool ProjectHelper::Save()
+bool ProjectHelper::Save(QList<KeyListWidgetItem*> keyItemList)
 {
-	for (int i = 0; i < this->allData.keys().count(); ++i)
+    for (int i = 0; i < this->langList.count(); ++i)
 	{
-		if (this->SaveLang(this->allData.keys()[i]) == false)
+        if (this->SaveLang(this->langList[i], keyItemList) == false)
 			return false;
 	}
 	return true;
 }
 
-bool ProjectHelper::SaveLang(const QString& lang)
+bool ProjectHelper::SaveLang(const QString& lang, QList<KeyListWidgetItem*> keyItemList)
 {
 	QString filePath = this->dirPath + "/" + lang + ".lang";
 	QFile file(filePath);
@@ -292,27 +246,23 @@ bool ProjectHelper::SaveLang(const QString& lang)
 	QXmlStreamWriter stream(&file);
 	stream.setAutoFormatting(true);
 	//stream.writeStartDocument();
-	stream.writeStartElement(lang);
+    stream.writeStartElement(lang);
 
-	QMap<QString, KeyValue> keyValueMap = this->allData[lang];
-	QList<QString> keyList = keyValueMap.keys();
-
-	int keyCount = keyList.count();
-	for (int i = 0; i < keyCount; ++i)
+    for (int i = 0; i < keyItemList.count(); ++i)
 	{
-		QString currentKey = keyList[i];
-		const KeyValue& keyVal = keyValueMap[currentKey];
+        KeyListWidgetItem* currentKeyItem = keyItemList[i];
+        const KeyValue& keyVal = currentKeyItem->GetKeyValueByLang(lang);
 
 		stream.writeStartElement("Loca");
-		stream.writeAttribute("Key", currentKey);
-		stream.writeAttribute("Value", keyVal.value);
-		stream.writeAttribute("Status", QString::number((int)(keyVal.status)));
+        stream.writeAttribute("Key", currentKeyItem->text());
+        stream.writeAttribute("Value", keyVal.GetValue());
+        stream.writeAttribute("Status", QString::number((int)(keyVal.GetStatus())));
 		stream.writeEndElement();
 
-		if (lang == this->defaultLang && keyVal.value == "")
+        if (lang == this->defaultLang && keyVal.GetValue() == "")
 		{
 			warning = true;
-			keyEmpty = currentKey;
+            keyEmpty = currentKeyItem->text();
 		}
 	}
 

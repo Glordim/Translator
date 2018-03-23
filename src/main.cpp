@@ -20,7 +20,7 @@ Preference GetPreference()
 {
 	Preference preference;
 
-	QString configLocation = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QString configLocation = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
 
 	if (configLocation.isEmpty() == true)
 		return preference;
@@ -36,7 +36,7 @@ Preference GetPreference()
 
 	if (file.open(QIODevice::ReadOnly) == false)
 	{
-		QMessageBox::critical(NULL, "Erreur", "Impossible d'ouvrir en lecture le projet");
+        //QMessageBox::critical(NULL, "Erreur", "Impossible d'ouvrir en lecture le projet");
 		return preference;
 	}
 
@@ -46,24 +46,21 @@ Preference GetPreference()
 	{
 		xml.readNext();
 
-		if (xml.isStartElement() == true)
-		{
-			if (xml.name() == "Line")
-			{
-				QXmlStreamAttributes attributesVec = xml.attributes();
+        if (xml.name() == "Pref")
+        {
+            QXmlStreamAttributes attributesVec = xml.attributes();
 
-				for (int i = 0; i < attributesVec.count(); ++i)
-				{
-					QXmlStreamAttribute attribute = attributesVec[i];
-					QString attributeName = attribute.name().toString();
+            for (int i = 0; i < attributesVec.count(); ++i)
+            {
+                QXmlStreamAttribute attribute = attributesVec[i];
+                QString attributeName = attribute.name().toString();
 
-					if (attributeName == "LastProject")
-					{
-						preference.lastProjectPath = attribute.value().toString();
-					}
-				}
-			}
-		}
+                if (attributeName == "LastProject")
+                {
+                    preference.lastProjectPath = attribute.value().toString();
+                }
+            }
+        }
 	}
 
 	file.close();

@@ -7,6 +7,8 @@
 #include "AddCommand.h"
 #include "RenameCommand.h"
 
+#include "KeyListWidgetItem.h"
+
 #include <iostream>
 #include <QShortcut>
 #include <QTextEdit>
@@ -73,21 +75,41 @@ bool MainWindow::LoadProject(const QString& path)
 	int langCount = langList.count();
 	for (int i = 0; i < langCount; ++i)
 	{
-		QList<QString> keyList = this->project.GetKeyList(langList[i]);
-		int keyCount = keyList.count();
+        QString lang = langList[i];
+        const QMap<QString, KeyValue>& keyMap = this->project.LoadLang(lang);
 
-		for (int j = 0; j < keyCount; ++j)
-		{
-			const QString& keyName = keyList.at(j);
+        auto itKey = keyMap.keyBegin();
+        auto itVal = keyMap.begin();
 
-			if (this->ui->keyListWidget->findItems(keyName, Qt::MatchExactly).size() == 0)
-			{
-				this->ui->keyListWidget->addItem(keyName);
-				QListWidgetItem* item = this->ui->keyListWidget->item(this->ui->keyListWidget->count() - 1);
-				item->setData(Qt::UserRole, keyName);
-				item->setFlags(item->flags() | Qt::ItemIsEditable);
-			}
-		}
+        while (itKey != keyMap.keyEnd())
+        {
+            QList<QListWidgetItem*> similarKey = this->ui->keyListWidget->findItems(*itKey, Qt::MatchExactly);
+
+            KeyListWidgetItem* keyItem = nullptr;
+
+            if (similarKey.size() == 0)
+            {
+                keyItem = new KeyListWidgetItem(*itKey, this->ui->keyListWidget);
+            }
+            else
+            {
+                keyItem = (KeyListWidgetItem*)similarKey[0];
+            }
+
+            keyItem->setData(Qt::UserRole, *itKey);
+            keyItem->setFlags(keyItem->flags() | Qt::ItemIsEditable);
+
+            keyItem->SetLang(langList);
+
+            KeyValue& keyValue = keyItem->GetKeyValueByLang(lang);
+            keyValue.SetValue(itVal->GetValue());
+            keyValue.SetStatus(itVal->GetStatus());
+
+            keyItem->RefreshGlobalStatus();
+
+            ++itKey;
+            ++itVal;
+        }
 	}
 
 	QHeaderView* headers = new QHeaderView(Qt::Orientation::Horizontal);
@@ -155,11 +177,11 @@ bool MainWindow::LoadProject(const QString& path)
 
 	if (this->ui->keyListWidget->count() != 0)
 	{
-		QListWidgetItem* item = this->ui->keyListWidget->item(0);
+        QListWidgetItem* item = this->ui->keyListWidget->item(0);
 		item->setSelected(true);
 
 		for (int i = 0; i < this->ui->keyListWidget->count(); ++i)
-			this->RefreshListKeyStatus(this->ui->keyListWidget->item(i));
+            ((KeyListWidgetItem*)this->ui->keyListWidget->item(i));
 	}
 
 	this->ui->keyListWidget->setEnabled(true);
@@ -189,7 +211,7 @@ void MainWindow::OnClickButtonStatus(int index)
 
 	QString lang = this->project.GetLangList()[index];
 
-	KeyStatus status = this->project.GetStatus(lang, this->selectedKeyItem->text());
+    KeyStatus status = this->selectedKeyItem->GetKeyValueByLang(lang).GetStatus();
 
 	if (status == KeyStatus::Block)
 		return;
@@ -199,11 +221,11 @@ void MainWindow::OnClickButtonStatus(int index)
 	else
 		status = KeyStatus::ToCheck;
 
-	this->project.SetStatus(lang, this->selectedKeyItem->text(), status);
+    this->selectedKeyItem->GetKeyValueByLang(lang).SetStatus(status);
 
 	this->RefreshButtonStatus(index);
 
-	this->RefreshListKeyStatus(this->selectedKeyItem);
+    this->selectedKeyItem->RefreshGlobalStatus();
 }
 
 void MainWindow::RefreshButtonStatus(int index)
@@ -212,7 +234,7 @@ void MainWindow::RefreshButtonStatus(int index)
 		return;
 
 	QString lang = this->project.GetLangList()[index];
-	KeyStatus status = this->project.GetStatus(lang, this->selectedKeyItem->text());
+    KeyStatus status = this->selectedKeyItem->GetKeyValueByLang(lang).GetStatus();
 
 	QPushButton* buttonStatus = (QPushButton*)this->ui->valueTableWidget->cellWidget(index, 1);
 
@@ -223,45 +245,6 @@ void MainWindow::RefreshButtonStatus(int index)
 	icon.addFile(":" + KeyValue::StatusToString(status));
 
 	buttonStatus->setIcon(icon);
-}
-
-void MainWindow::RefreshListKeyStatus(QListWidgetItem* item)
-{
-	QList<QString> langList = this->project.GetLangList();
-
-	bool containEmpty = false;
-	bool containToCheck = false;
-	bool containAllValidate = true;
-
-	int langCount = langList.count();
-	for (int i = 0; i < langCount; ++i)
-	{
-		KeyStatus status = this->project.GetStatus(langList[i], item->text());
-
-		if (status != KeyStatus::Validate)
-			containAllValidate = false;
-
-		if (status == KeyStatus::ToCheck)
-			containToCheck = true;
-		else if (status == KeyStatus::Block)
-			containEmpty = true;
-	}
-
-	QString iconName;
-
-	if (containAllValidate == true)
-		iconName = KeyValue::StatusToString(KeyStatus::Validate);
-	else if (containEmpty == true)
-		iconName = KeyValue::StatusToString(KeyStatus::Block);
-	else if (containToCheck == true)
-		iconName = KeyValue::StatusToString(KeyStatus::ToCheck);
-	else
-		iconName = "";
-
-	QIcon icon;
-	icon.addFile(":" + iconName);
-
-	item->setIcon(icon);
 }
 
 //  === Search Key ===
@@ -280,7 +263,7 @@ void MainWindow::on_searchKeyLineEdit_textChanged(const QString& searchValue)
 
 void MainWindow::on_keyListWidget_itemSelectionChanged()
 {
-	QList<QListWidgetItem*> selectedKeys = this->ui->keyListWidget->selectedItems();
+    QList<QListWidgetItem*> selectedKeys = this->ui->keyListWidget->selectedItems();
 
 	this->ui->addKeyButton->setEnabled(selectedKeys.count() <= 1);
 	this->ui->renameKeyButton->setEnabled(selectedKeys.count() == 1);
@@ -288,7 +271,7 @@ void MainWindow::on_keyListWidget_itemSelectionChanged()
 
 	if (selectedKeys.empty() == true || selectedKeys.count() > 1)
 	{
-		this->ui->valueTableWidget->clearContents();
+        //this->ui->valueTableWidget->clearContents();
 		this->ui->valueTableWidget->setEnabled(false);
 
 		this->selectedKeyItem = NULL;
@@ -298,14 +281,14 @@ void MainWindow::on_keyListWidget_itemSelectionChanged()
 
 	this->ui->valueTableWidget->setEnabled(true);
 
-	this->selectedKeyItem = selectedKeys[0];
+    this->selectedKeyItem = (KeyListWidgetItem*)selectedKeys[0];
 
 	QList<QString> langList = this->project.GetLangList();
 
 	int langCount = langList.count();
 	for (int i = 0; i < langCount; ++i)
 	{
-		QString text = this->project.GetValue(langList[i], this->selectedKeyItem->text());
+        const QString& text = this->selectedKeyItem->GetKeyValueByLang(langList[i]).GetValue();
 		QTableWidgetItem* item = this->ui->valueTableWidget->item(i, 0);
 
 		if (item == NULL)
@@ -313,12 +296,7 @@ void MainWindow::on_keyListWidget_itemSelectionChanged()
 		else
 			item->setText(text);
 
-		//QTextEdit *edit = new QTextEdit();
-		//edit->setText(text);
-
-		//this->ui->valueTableWidget->setCellWidget(i, 0, edit);
-
-		this->RefreshButtonStatus(i);
+        this->RefreshButtonStatus(i);
 	}
 
 	this->RefreshWebView();
@@ -333,7 +311,9 @@ void MainWindow::on_keyListWidget_itemChanged(QListWidgetItem *item)
 	if (newKey == oldKey)
 		return;
 
-	if (this->project.ContainsKey(newKey) == true)
+    QList<QListWidgetItem*> similarItem = this->ui->keyListWidget->findItems(newKey, Qt::MatchFlag::MatchExactly);
+
+    if (similarItem.count() > 1)
 	{
 		this->PrintStatusError("Rename Fail : The key '" + newKey + "' already exist !");
 
@@ -404,14 +384,10 @@ void MainWindow::NewKey()
 	this->undoStack->push(addCommand);
 }
 
-QListWidgetItem* MainWindow::AddNewKey(const QString& keyName, bool edit)
+KeyListWidgetItem* MainWindow::AddNewKey(const QString& keyName, bool edit)
 {
-	QIcon icon;
-	icon.addFile(":" + KeyValue::StatusToString(KeyStatus::Block));
-
-	QListWidgetItem* item = new QListWidgetItem(icon, keyName, this->ui->keyListWidget);
-	item->setData(Qt::UserRole, keyName);
-	item->setFlags(item->flags() | Qt::ItemIsEditable);
+    KeyListWidgetItem* item = new KeyListWidgetItem(keyName, this->ui->keyListWidget);
+    item->SetLang(this->project.GetLangList());
 	item->setSelected(true);
 
 	this->ui->keyListWidget->sortItems();
@@ -433,11 +409,21 @@ bool MainWindow::CheckIfItemIsPresentInKeyList(QListWidgetItem* item)
 	return false;
 }
 
+bool MainWindow::CheckIfItemIsPresentInKeyList(const QString& itemName)
+{
+    for (int i = 0; i < this->ui->keyListWidget->count(); ++i)
+    {
+        if (this->ui->keyListWidget->item(i)->text() == itemName)
+            return true;
+    }
+    return false;
+}
+
 QListWidgetItem* MainWindow::GetItemInKeyList(const QString& keyName)
 {
 	for (int i = 0; i < this->ui->keyListWidget->count(); ++i)
 	{
-		QListWidgetItem* item = this->ui->keyListWidget->item(i);
+        QListWidgetItem* item = this->ui->keyListWidget->item(i);
 
 		if (item->text() == keyName)
 			return item;
@@ -447,13 +433,11 @@ QListWidgetItem* MainWindow::GetItemInKeyList(const QString& keyName)
 
 void MainWindow::ApplyRenameKey(QListWidgetItem* item, const QString& newName)
 {
+    QString oldKey = item->text();
+
 	item->setData(Qt::UserRole, newName);
-	item->setText(newName);
-	// TOTO Cancel Edit mode
+    item->setText(newName);
 
-	this->project.RenameKey(item->text(), newName);
-
-	//this->ui->keyListWidget->selec
 	this->ui->keyListWidget->sortItems();
 	this->ui->keyListWidget->scrollToItem(item);
 
@@ -462,7 +446,7 @@ void MainWindow::ApplyRenameKey(QListWidgetItem* item, const QString& newName)
 
 void MainWindow::RenameKey()
 {
-	QList<QListWidgetItem*> selectedKeys = this->ui->keyListWidget->selectedItems();
+    QList<QListWidgetItem*> selectedKeys = this->ui->keyListWidget->selectedItems();
 
 	if (selectedKeys.count() == 1)
 		this->ui->keyListWidget->editItem(selectedKeys[0]);
@@ -472,7 +456,7 @@ void MainWindow::DeleteKey()
 {
 	QString text = "Voulez-vous vraiment supprimer les clés suivantes :\n\n";
 
-	QList<QListWidgetItem*> selectedKeys = this->ui->keyListWidget->selectedItems();
+    QList<QListWidgetItem*> selectedKeys = this->ui->keyListWidget->selectedItems();
 
 	for (int i = 0; i < selectedKeys.count(); ++i)
 	{
@@ -481,7 +465,7 @@ void MainWindow::DeleteKey()
 
 	if (QMessageBox::warning(this, "Confirmation", text, QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
 	{
-		QList<QListWidgetItem*> selectedKeys = this->ui->keyListWidget->selectedItems();
+        QList<QListWidgetItem*> selectedKeys = this->ui->keyListWidget->selectedItems();
 
 		for (int i = 0; i < selectedKeys.count(); ++i)
 		{
@@ -492,9 +476,7 @@ void MainWindow::DeleteKey()
 
 void MainWindow::RemoveKey(QListWidgetItem* item)
 {
-	this->project.RemoveKey(item->text());
-
-	int row = this->ui->keyListWidget->row(item);
+    int row = this->ui->keyListWidget->row(item);
 	this->ui->keyListWidget->takeItem(row);
 
 	if (this->ui->keyListWidget->count() != 0)
@@ -502,7 +484,7 @@ void MainWindow::RemoveKey(QListWidgetItem* item)
 		if (row >= this->ui->keyListWidget->count())
 			row = this->ui->keyListWidget->count() - 1;
 
-		QListWidgetItem* item = this->ui->keyListWidget->item(row);
+        QListWidgetItem* item = this->ui->keyListWidget->item(row);
 
 		if (item != NULL)
 		{
@@ -520,7 +502,7 @@ void MainWindow::RefreshWebView()
 	if (this->selectedKeyItem == NULL)
 		return;
 
-	QString valueForDefaultLang = this->project.GetValue(this->defaultLang, this->selectedKeyItem->text());
+    QString valueForDefaultLang = this->selectedKeyItem->GetKeyValueByLang(this->defaultLang).GetValue();
 	QString lang = this->defaultLang;
 
 	QList<QTableWidgetItem*> selectedList = this->ui->valueTableWidget->selectedItems();
@@ -559,19 +541,20 @@ void MainWindow::on_valueTableWidget_itemChanged(QTableWidgetItem *item)
 	}
 
 	QString lang = this->project.GetLangList()[item->row()];
-	this->project.SetValue(lang, this->selectedKeyItem->text(), value);
+    KeyValue& keyValue = this->selectedKeyItem->GetKeyValueByLang(lang);
+    keyValue.SetValue(value);
 
 	if (value == "")
 	{
-		this->project.SetStatus(lang, this->selectedKeyItem->text(), KeyStatus::Block);
+        keyValue.SetStatus(KeyStatus::Block);
 		this->RefreshButtonStatus(item->row());
-		this->RefreshListKeyStatus(this->selectedKeyItem);
+        this->selectedKeyItem->RefreshGlobalStatus();
 	}
-	else if (this->project.GetStatus(lang, this->selectedKeyItem->text()) != KeyStatus::Validate)
+    else if (keyValue.GetStatus() != KeyStatus::Validate)
 	{
-		this->project.SetStatus(lang, this->selectedKeyItem->text(), KeyStatus::ToCheck);
+        keyValue.SetStatus(KeyStatus::ToCheck);
 		this->RefreshButtonStatus(item->row());
-		this->RefreshListKeyStatus(this->selectedKeyItem);
+        this->selectedKeyItem->RefreshGlobalStatus();
 	}
 
 	this->ui->valueTableWidget->resizeRowToContents(item->row());
@@ -622,7 +605,12 @@ void MainWindow::CloseProject()
 
 void MainWindow::on_actionSaveProject_triggered()
 {
-	this->project.Save();
+    QList<KeyListWidgetItem*> allKeyItem;
+
+    for (int i = 0; i < this->ui->keyListWidget->count(); ++i)
+        allKeyItem.push_back((KeyListWidgetItem*)this->ui->keyListWidget->item(i));
+
+    this->project.Save(allKeyItem);
 }
 
 void MainWindow::on_actionQuit_triggered()

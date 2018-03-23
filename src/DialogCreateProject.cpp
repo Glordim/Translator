@@ -224,7 +224,7 @@ void DialogCreateProject::done(int r)
 
 		for (int i = 0; i < supportedCount; ++i)
 		{
-			this->project.SaveLang(supportedLangValueList[i]);
+            //this->project.SaveLang(supportedLangValueList[i]);
 		}
 
 		QObject* obj = this;

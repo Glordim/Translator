@@ -11,6 +11,7 @@
 #include <QListWidgetItem>
 #include <QTableWidgetItem>
 
+#include "KeyListWidgetItem.h"
 
 #ifdef USE_WEBENGINE
 #include <QtWebEngine>
@@ -35,14 +36,14 @@ public:
 	bool LoadProject(const QString& path);
 
 	void RefreshWebView();
-	void RefreshButtonStatus(int index);
-	void RefreshListKeyStatus(QListWidgetItem* item);
+    void RefreshButtonStatus(int index);
 
 	void PrintStatusMessage(const QString& message);
 	void PrintStatusError(const QString& message);
 
-    QListWidgetItem* AddNewKey(const QString& keyName, bool edit);
+    KeyListWidgetItem* AddNewKey(const QString& keyName, bool edit);
 	bool CheckIfItemIsPresentInKeyList(QListWidgetItem* item);
+    bool CheckIfItemIsPresentInKeyList(const QString& itemName);
 	QListWidgetItem* GetItemInKeyList(const QString& keyName);
 	void RemoveKey(QListWidgetItem* item);
 	void ApplyRenameKey(QListWidgetItem* item, const QString& newName);
@@ -91,7 +92,7 @@ private:
 
 	QString defaultLang;
 
-	QListWidgetItem* selectedKeyItem;
+    KeyListWidgetItem* selectedKeyItem;
 
 	ProjectHelper project;
 
